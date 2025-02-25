@@ -38,9 +38,9 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 		// swagger json address
 		swaggerJsonUri := ""
 		if serverPath == "" {
-			swaggerJsonUri = fmt.Sprintf("%s/resources/swagger.json", baseUrl)
+			swaggerJsonUri = fmt.Sprintf("%s/resources/swagger.json", strings.TrimRight(baseUrl, "/"))
 		} else {
-			swaggerJsonUri = fmt.Sprintf("%s/%s/resources/swagger.json", baseUrl, serverPath)
+			swaggerJsonUri = fmt.Sprintf("%s/%s/resources/swagger.json", strings.TrimRight(baseUrl, "/"), strings.TrimRight(serverPath, "/"))
 		}
 
 		swaggerUIHTML := `<!DOCTYPE html>
@@ -104,8 +104,12 @@ func getEndpointRouters(openapi *swagger.OpenApi, router router.IRouterBuilder, 
 			Tags:       []string{"default"},
 			Responses:  map[string]swagger.ResponsesItem{},
 			Parameters: []swagger.Parameters{}}
-
-		actPath := fmt.Sprintf("/%s%s", env.MetaData["server.path"], routerInfoList[idx].Path)
+		actPath := ""
+		if env.MetaData["server.path"] == "" {
+			actPath = fmt.Sprintf("/%s", strings.TrimLeft(routerInfoList[idx].Path, "/"))
+		} else {
+			actPath = fmt.Sprintf("/%s%s", strings.TrimRight(env.MetaData["server.path"], "/"), strings.TrimLeft(routerInfoList[idx].Path, ""))
+		}
 		// used regexp ,replace :id to {id}
 		if strings.Contains(actPath, ":") {
 			reg := regexp.MustCompile(`:([a-zA-Z0-9]+)`)
@@ -133,9 +137,9 @@ func getMvcRouters(controller mvc.ControllerDescriptor, openapi *swagger.OpenApi
 	mvcTemplate = strings.ReplaceAll(mvcTemplate, "{controller}", "%s")
 	mvcTemplate = strings.ReplaceAll(mvcTemplate, "{action}", "%s")
 	if serverPath == "" {
-		mvcTemplate = fmt.Sprintf("/%s", mvcTemplate)
+		mvcTemplate = fmt.Sprintf("/%s", strings.TrimLeft(mvcTemplate, "/"))
 	} else {
-		mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
+		mvcTemplate = fmt.Sprintf("/%s/%s", strings.TrimRight(serverPath, "/"), strings.TrimLeft(mvcTemplate, "/"))
 	}
 	suf := len(controller.ControllerName) - 10
 	controllerName := controller.ControllerName[0:suf]

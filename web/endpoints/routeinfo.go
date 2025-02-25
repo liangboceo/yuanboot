@@ -31,15 +31,19 @@ func UseRouteInfo(route router.IRouterBuilder) {
 			routerInfoList = make([]router.Info, len(route.GetRouteInfo()))
 			copy(routerInfoList, route.GetRouteInfo())
 			for idx, _ := range routerInfoList {
-				routerInfoList[idx].Path = fmt.Sprintf("/%s%s", serverPath, routerInfoList[idx].Path)
+				if serverPath == "" {
+					routerInfoList[idx].Path = fmt.Sprintf("/%s", strings.TrimLeft(routerInfoList[idx].Path, "/"))
+				} else {
+					routerInfoList[idx].Path = fmt.Sprintf("/%s/%s", strings.TrimRight(serverPath, "/"), strings.TrimLeft(routerInfoList[idx].Path, "/"))
+				}
 			}
 			// mvc
 			mvcTemplate = strings.ReplaceAll(mvcTemplate, "{controller}", "%s")
 			mvcTemplate = strings.ReplaceAll(mvcTemplate, "{action}", "%s")
 			if serverPath == "" {
-				mvcTemplate = fmt.Sprintf("/%s", mvcTemplate)
+				mvcTemplate = fmt.Sprintf("/%s", strings.TrimLeft(mvcTemplate, "/"))
 			} else {
-				mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
+				mvcTemplate = fmt.Sprintf("/%s/%s", strings.TrimRight(serverPath, "/"), strings.TrimLeft(mvcTemplate, "/"))
 			}
 			descriptorList := builder.GetControllerDescriptorList()
 			for _, desc := range descriptorList {
