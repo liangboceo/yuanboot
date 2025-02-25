@@ -41,6 +41,9 @@ func (router *DefaultRouterBuilder) SetConfiguration(config abstractions.IConfig
 	}
 	// server.path
 	serverPath, hasPath := config.Get("yuanboot.application.server.path").(string)
+	if serverPath == "" {
+		hasPath = false
+	}
 	if hasPath {
 		router.endPointRouterHandler.Component = serverPath
 		router.log.Info("server.path:  %s", consolecolors.Green(serverPath))

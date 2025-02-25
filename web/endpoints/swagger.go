@@ -36,7 +36,13 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 		baseUrl := fmt.Sprintf("http://localhost:%s", env.Port)
 		serverPath := env.MetaData["server.path"]
 		// swagger json address
-		swaggerJsonUri := fmt.Sprintf("%s/%s/resources/swagger.json", baseUrl, serverPath)
+		swaggerJsonUri := ""
+		if serverPath == "" {
+			swaggerJsonUri = fmt.Sprintf("%s/resources/swagger.json", baseUrl)
+		} else {
+			swaggerJsonUri = fmt.Sprintf("%s/%s/resources/swagger.json", baseUrl, serverPath)
+		}
+
 		swaggerUIHTML := `<!DOCTYPE html>
 			<html lang="en">
 			  <head>
