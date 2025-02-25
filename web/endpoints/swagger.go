@@ -126,8 +126,11 @@ func getMvcRouters(controller mvc.ControllerDescriptor, openapi *swagger.OpenApi
 	// mvc
 	mvcTemplate = strings.ReplaceAll(mvcTemplate, "{controller}", "%s")
 	mvcTemplate = strings.ReplaceAll(mvcTemplate, "{action}", "%s")
-	mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
-
+	if serverPath == "" {
+		mvcTemplate = fmt.Sprintf("/%s", mvcTemplate)
+	} else {
+		mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
+	}
 	suf := len(controller.ControllerName) - 10
 	controllerName := controller.ControllerName[0:suf]
 	openapi.Tags = append(openapi.Tags, swagger.Tag{Name: controller.ControllerName, Description: controller.Descriptor})

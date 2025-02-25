@@ -36,7 +36,11 @@ func UseRouteInfo(route router.IRouterBuilder) {
 			// mvc
 			mvcTemplate = strings.ReplaceAll(mvcTemplate, "{controller}", "%s")
 			mvcTemplate = strings.ReplaceAll(mvcTemplate, "{action}", "%s")
-			mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
+			if serverPath == "" {
+				mvcTemplate = fmt.Sprintf("/%s", mvcTemplate)
+			} else {
+				mvcTemplate = fmt.Sprintf("/%s/%s", serverPath, mvcTemplate)
+			}
 			descriptorList := builder.GetControllerDescriptorList()
 			for _, desc := range descriptorList {
 				for _, action := range desc.GetActionDescriptors() {
