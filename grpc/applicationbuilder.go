@@ -9,8 +9,8 @@ import (
 
 type ApplicationBuilder struct {
 	hostBuilderContext *abstractions.HostBuilderContext
-
-	serverContext *ServerBuilderContext
+	extendConfigures   []func(context *abstractions.HostBuilderContext)
+	serverContext      *ServerBuilderContext
 }
 
 func NewApplicationBuilder() *ApplicationBuilder {
@@ -56,6 +56,7 @@ func (builder *ApplicationBuilder) Build() interface{} {
 	builder.serverContext.context = svrCtx
 
 	builder.serverContext.server = server
+	builder.buildExtends()
 	return builder.serverContext
 }
 
@@ -71,4 +72,14 @@ func (builder *ApplicationBuilder) innerConfigures() {
 	builder.hostBuilderContext.
 		ApplicationServicesDef.
 		AddSingleton(func() *grpc.Server { return builder.serverContext.server })
+}
+
+func (builder *ApplicationBuilder) UseExtends(configure func(context *abstractions.HostBuilderContext)) *ApplicationBuilder {
+	builder.extendConfigures = append(builder.extendConfigures, configure)
+	return builder
+}
+func (builder *ApplicationBuilder) buildExtends() {
+	for _, configure := range builder.extendConfigures {
+		configure(builder.hostBuilderContext)
+	}
 }

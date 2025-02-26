@@ -23,7 +23,7 @@ type ApplicationBuilder struct {
 	handlers          []middlewares.MiddlewareHandler        // middleware lists
 	routeConfigures   []func(router.IRouterBuilder)          // endpoints router configure functions
 	mvcConfigures     []func(builder *mvc.ControllerBuilder) // mvc router configure functions
-	extendConfigures  []func(configuration abstractions.IConfiguration)
+	extendConfigures  []func(context *abstractions.HostBuilderContext)
 }
 
 // create classic application builder
@@ -98,13 +98,13 @@ func (self *ApplicationBuilder) UseEndpoints(configure func(router.IRouterBuilde
 	self.routeConfigures = append(self.routeConfigures, configure)
 	return self
 }
-func (self *ApplicationBuilder) UseExtends(configure func(configuration abstractions.IConfiguration)) *ApplicationBuilder {
+func (self *ApplicationBuilder) UseExtends(configure func(context *abstractions.HostBuilderContext)) *ApplicationBuilder {
 	self.extendConfigures = append(self.extendConfigures, configure)
 	return self
 }
 func (this *ApplicationBuilder) buildExtends() {
 	for _, configure := range this.extendConfigures {
-		configure(this.hostContext.Configuration)
+		configure(this.hostContext)
 	}
 }
 func (this *ApplicationBuilder) buildEndPoints() {
