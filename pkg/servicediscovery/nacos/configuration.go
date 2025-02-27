@@ -17,6 +17,7 @@ type Config struct {
 	GroupName   string `mapstructure:"group" config:"group"`
 	Cluster     string `mapstructure:"cluster" config:"cluster"`
 	Auth        *Auth  `mapstructure:"auth" config:"auth"`
+	Path        string `mapstructure:"path" config:"path"`
 }
 
 type Auth struct {

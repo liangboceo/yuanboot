@@ -11,7 +11,9 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/model"
 	"github.com/nacos-group/nacos-sdk-go/vo"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Registrar struct {
@@ -26,6 +28,7 @@ func NewServerDiscoveryWithDI(configuration abstractions.IConfiguration, env *ab
 	if !ok || sdType != "nacos" {
 		panic(errors.New("yuanboot.cloud.discovery.type is not config node"))
 	}
+	path, _ := configuration.Get("yuanboot.application.server.path").(string)
 	section := configuration.GetSection("yuanboot.cloud.discovery.metadata")
 	if section == nil {
 		panic(errors.New("yuanboot.cloud.discovery.metadata is not config node"))
@@ -37,6 +40,9 @@ func NewServerDiscoveryWithDI(configuration abstractions.IConfiguration, env *ab
 	}
 	if option.Cluster == "" {
 		option.Cluster = Cluster
+	}
+	if option.Path == "" {
+		option.Path = path
 	}
 	option.ENV = env
 
@@ -101,7 +107,14 @@ func (registrar *Registrar) Register() error {
 		Healthy:     true,
 		Ephemeral:   true,
 		Metadata: map[string]string{
-			"VERSION": registrar.config.ENV.Version,
+			"yuanboot_version":                  registrar.config.ENV.Version,
+			"yuanboot_env":                      registrar.config.ENV.Profile,
+			"yuanboot_author":                   "jackson",
+			"yuanboot_application_description":  "quickly,quickly,quickly,quickly,quickly!!!!!",
+			"yuanboot_application_context-path": registrar.config.Path,
+			"yuanboot_application_pid":          strconv.Itoa(registrar.config.ENV.PID),
+			"yuanboot_application_create_time":  time.Now().Format("2006-01-02 15:04:05"),
+			"yuanboot_application_name":         registrar.config.ENV.ApplicationName,
 		},
 	})
 	if err != nil {
