@@ -61,7 +61,7 @@ func (logger *Logger) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		)
 		logger.infoPool.Put(logInfo)
 
-		logger.log.Info(outLog)
+		logger.log.Infof(outLog)
 
 		return resp, err
 	}
@@ -95,7 +95,7 @@ func (logger *Logger) StreamServerInterceptor() grpc.StreamServerInterceptor {
 		)
 		logger.infoPool.Put(logInfo)
 
-		logger.log.Info(outLog)
+		logger.log.Infof(outLog)
 
 		return err
 	}

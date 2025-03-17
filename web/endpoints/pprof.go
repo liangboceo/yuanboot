@@ -21,7 +21,7 @@ func pprofHandler(h http.HandlerFunc) web.HandlerFunc {
 }
 
 func UsePprof(routerBuilder router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded pprof endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded pprof endpoint.")
 
 	routerBuilder.Group("/actuator/debug/pprof", func(prefixRouter *router.RouterGroup) {
 		prefixRouter.GET("/", pprofHandler(pprof.Index))

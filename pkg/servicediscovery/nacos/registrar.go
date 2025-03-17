@@ -66,6 +66,8 @@ func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
 		TimeoutMs:           5000,
 		NotLoadCacheAtStart: true,
 		LogLevel:            "info",
+		CacheDir:            logger.GetOptions().LogPath,
+		CustomLogger:        logger,
 	}
 
 	if option.Auth != nil && option.Auth.Enable {
@@ -86,7 +88,7 @@ func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
 	nacosRegister.config = option
 	nacosRegister.logger = logger
 
-	logger.Debug("url:%s, namespace:%s , group:%s , cluster:%s ;", option.Url, option.NamespaceId, option.GroupName, option.Cluster)
+	logger.Debugf("url:%s, namespace:%s , group:%s , cluster:%s ;", option.Url, option.NamespaceId, option.GroupName, option.Cluster)
 	return nacosRegister
 }
 
@@ -120,7 +122,7 @@ func (registrar *Registrar) Register() error {
 	if err != nil {
 		registrar.logger.Error(err.Error())
 	}
-	registrar.logger.Debug("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, success)
+	registrar.logger.Debugf("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, success)
 	return err
 }
 
@@ -195,7 +197,7 @@ func convInstance(groupName string, sourceInstances []model.Instance) []serviced
 }
 
 func (registrar *Registrar) Destroy() error {
-	registrar.logger.Debug("Destroy")
+	registrar.logger.Debugf("Destroy")
 	err := registrar.Unregister()
 	return err
 }

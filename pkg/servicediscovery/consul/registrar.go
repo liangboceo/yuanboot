@@ -38,7 +38,7 @@ func NewServerDiscovery(option Option) servicediscovery.IServiceDiscovery {
 	if client == nil {
 		logger.Error("consul client is nil !!")
 	}
-	logger.Debug("url:%s", option.Address)
+	logger.Debugf("url:%s", option.Address)
 	return &Registrar{
 		logger: logger,
 		client: client,
@@ -66,7 +66,7 @@ func (registrar *Registrar) Register() error {
 	}
 
 	err := registrar.client.Register(registration)
-	registrar.logger.Debug("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, err == nil)
+	registrar.logger.Debugf("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, err == nil)
 	return err
 }
 
@@ -80,7 +80,7 @@ func (registrar *Registrar) Unregister() error {
 	}
 	registration := new(consul.AgentServiceRegistration)
 	registration.ID = registrar.cacheLocalInstance.GetId()
-	registrar.logger.Debug("unregister id: %s , success", registration.ID)
+	registrar.logger.Debugf("unregister id: %s , success", registration.ID)
 	return registrar.client.Deregister(registration)
 }
 

@@ -91,7 +91,7 @@ func (r *Registrar) Register() error {
 					if err != nil {
 						r.logger.Error("keep alive:%s", err)
 					} else {
-						r.logger.Debug("ETCD Register: %s", r.servicePath)
+						r.logger.Debugf("ETCD Register: %s", r.servicePath)
 					}
 				}
 				<-ticker.C
@@ -131,7 +131,7 @@ func (r *Registrar) Unregister() error {
 		_, err := r.client.Delete(context.Background(), r.servicePath)
 
 		if err == nil {
-			r.logger.Debug("ETCD UnRegister Succeeded: %s", r.servicePath)
+			r.logger.Debugf("ETCD UnRegister Succeeded: %s", r.servicePath)
 		}
 
 		return err

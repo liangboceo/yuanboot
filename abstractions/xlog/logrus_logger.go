@@ -13,6 +13,7 @@ type LogrusLogger struct {
 	fields        map[string]interface{}
 	displayFields bool
 	class         string
+	option        *LogOptions
 }
 
 type LogOptions struct {
@@ -65,7 +66,7 @@ func NewLogger(options *LogOptions) ILogger {
 		lv = logrus.WarnLevel
 	}
 	logger.SetLevel(lv)
-	return &LogrusLogger{logger: logger, dateFormat: LoggerDefaultDateFormat}
+	return &LogrusLogger{logger: logger, option: options, dateFormat: LoggerDefaultDateFormat}
 }
 
 func GetClassLogger(class string, options *LogOptions) ILogger {
@@ -92,7 +93,7 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 		FullTimestamp:   true,
 		ForceFormatting: true,
 	}
-	return &LogrusLogger{logger: logger, class: class, dateFormat: LoggerDefaultDateFormat, displayFields: true}
+	return &LogrusLogger{logger: logger, option: options, class: class, dateFormat: LoggerDefaultDateFormat, displayFields: true}
 }
 
 func (log *LogrusLogger) With(level LogLevel, fiedls map[string]interface{}) *logrus.Entry {
@@ -115,22 +116,44 @@ func (log *LogrusLogger) With(level LogLevel, fiedls map[string]interface{}) *lo
 	return log.logger.WithFields(fieldsMap)
 }
 
-func (log LogrusLogger) Debug(format string, a ...interface{}) {
-	log.With(DEBUG, log.fields).Debugf(format, a...)
-}
-
-func (log LogrusLogger) Info(format string, a ...interface{}) {
-	log.With(INFO, log.fields).Infof(format, a...)
-}
-
-func (log LogrusLogger) Warning(format string, a ...interface{}) {
+func (log *LogrusLogger) Warning(format string, a ...interface{}) {
 	log.With(WARNING, log.fields).Warnf(format, a...)
 }
 
-func (log LogrusLogger) Error(format string, a ...interface{}) {
+func (log *LogrusLogger) Info(args ...interface{}) {
+	log.With(INFO, log.fields).Info(args)
+}
+
+func (log *LogrusLogger) Warn(args ...interface{}) {
+	log.With(WARNING, log.fields).Warn(args)
+}
+
+func (log *LogrusLogger) Error(args ...interface{}) {
 	log.logger.Out = os.Stderr
-	log.With(ERROR, log.fields).Errorf(format, a...)
+	log.With(ERROR, log.fields).Error(args)
 	log.logger.Out = os.Stdout
+}
+
+func (log *LogrusLogger) Debug(args ...interface{}) {
+	log.With(DEBUG, log.fields).Debug(args)
+}
+
+func (log *LogrusLogger) Infof(fmt string, args ...interface{}) {
+	log.With(INFO, log.fields).Infof(fmt, args)
+}
+
+func (log *LogrusLogger) Warnf(fmt string, args ...interface{}) {
+	log.With(WARNING, log.fields).Warnf(fmt, args)
+}
+
+func (log *LogrusLogger) Errorf(fmt string, args ...interface{}) {
+	log.logger.Out = os.Stderr
+	log.With(ERROR, log.fields).Errorf(fmt, args)
+	log.logger.Out = os.Stdout
+}
+
+func (log *LogrusLogger) Debugf(fmt string, args ...interface{}) {
+	log.With(DEBUG, log.fields).Debugf(fmt, args)
 }
 
 func (log *LogrusLogger) SetClass(className string) {
@@ -141,6 +164,10 @@ func (log *LogrusLogger) SetCustomLogFormat(logFormatterFunc func(logInfo interf
 	log.displayFields = false
 }
 
-func (log LogrusLogger) SetDateFormat(format string) {
+func (log *LogrusLogger) SetDateFormat(format string) {
 	//log.dateFormat = format
+}
+
+func (log *LogrusLogger) GetOptions() *LogOptions {
+	return log.option
 }

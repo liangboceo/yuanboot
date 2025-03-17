@@ -2,6 +2,8 @@ package utils
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 )
@@ -25,4 +27,28 @@ func Md5String(str string) string {
 	has := md5.Sum(data)
 	md5str := fmt.Sprintf("%x", has)
 	return md5str
+}
+
+// Sha256ToLower 方法接收一个字符串输入，生成其对应的 SHA-256 哈希值，并以十六进制字符串形式返回
+func Sha256ToLower(input string) string {
+	// 创建一个新的 SHA-256 哈希对象
+	hash := sha256.New()
+	// 向哈希对象中写入输入字符串的字节表示
+	hash.Write([]byte(input))
+	// 计算哈希值
+	hashedBytes := hash.Sum(nil)
+	// 将哈希值的字节切片转换为十六进制字符串
+	return strings.ToLower(hex.EncodeToString(hashedBytes))
+}
+
+// Sha256ToUpper 方法接收一个字符串输入，生成其对应的 SHA-256 哈希值，并以十六进制字符串形式返回
+func Sha256ToUpper(input string) string {
+	// 创建一个新的 SHA-256 哈希对象
+	hash := sha256.New()
+	// 向哈希对象中写入输入字符串的字节表示
+	hash.Write([]byte(input))
+	// 计算哈希值
+	hashedBytes := hash.Sum(nil)
+	// 将哈希值的字节切片转换为十六进制字符串
+	return strings.ToUpper(hex.EncodeToString(hashedBytes))
 }

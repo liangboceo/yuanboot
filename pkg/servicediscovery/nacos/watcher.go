@@ -55,7 +55,7 @@ func (w *Watcher) Next() (*servicediscovery.Result, error) {
 			if len(e.Service.Nodes) > 0 {
 				id = e.Service.Nodes[0].GetId()
 			}
-			w.logger.Debug("got nacos %s event by servicename: %s", e.Action, id)
+			w.logger.Debugf("got nacos %s event by servicename: %s", e.Action, id)
 			return e, nil
 		}
 	}

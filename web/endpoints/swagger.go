@@ -15,7 +15,7 @@ import (
 )
 
 func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc func(openapi *swagger.OpenApi)) {
-	xlog.GetXLogger("Endpoint").Debug("loaded swagger ui endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded swagger ui endpoint.")
 
 	// swagger.json
 	router.GET("/resources/swagger.json", func(ctx *context.HttpContext) {

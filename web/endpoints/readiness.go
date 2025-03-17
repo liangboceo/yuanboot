@@ -8,7 +8,7 @@ import (
 )
 
 func UseReadiness(router router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded health-readiness endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded health-readiness endpoint.")
 
 	router.GET("/actuator/health/readiness", func(ctx *context.HttpContext) {
 		var appLife *abstractions.ApplicationLife

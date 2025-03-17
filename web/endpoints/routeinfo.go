@@ -17,7 +17,7 @@ var (
 )
 
 func UseRouteInfo(route router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded router information endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded router information endpoint.")
 
 	route.GET("/actuator/routers", func(ctx *context.HttpContext) {
 		once.Do(func() {

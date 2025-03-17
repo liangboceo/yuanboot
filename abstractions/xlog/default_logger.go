@@ -3,16 +3,20 @@ package xlog
 import (
 	"fmt"
 	"github.com/liangboceo/yuanboot/abstractions/platform/consolecolors"
+	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"time"
 )
 
 type XDefaultLogger struct {
-	logger       *log.Logger
-	dateFormat   string
-	class        string
-	logFormatter func(interface{}) string
+	logger        *logrus.Logger
+	dateFormat    string
+	class         string
+	logFormatter  func(interface{}) string
+	fields        map[string]interface{}
+	displayFields bool
+	option        *LogOptions
 }
 
 func NewXLogger() *XDefaultLogger {
@@ -21,7 +25,7 @@ func NewXLogger() *XDefaultLogger {
 }
 
 func NewLoggerWith(log *log.Logger) *XDefaultLogger {
-	logger := &XDefaultLogger{logger: log, dateFormat: LoggerDefaultDateFormat}
+	logger := &XDefaultLogger{logger: logrus.New(), dateFormat: LoggerDefaultDateFormat}
 	logger.SetCustomLogFormat(defaultLogFormatter)
 	return logger
 }
@@ -81,19 +85,66 @@ func (log *XDefaultLogger) log(level LogLevel, format string, a ...interface{}) 
 
 	log.logger.Println(log.logFormatter(info))
 }
+func (log *XDefaultLogger) With(level LogLevel, fiedls map[string]interface{}) *logrus.Entry {
 
-func (log *XDefaultLogger) Debug(format string, a ...interface{}) {
-	log.log(DEBUG, format, a...)
-}
+	//start := time.Now()
 
-func (log *XDefaultLogger) Info(format string, a ...interface{}) {
-	log.log(INFO, format, a...)
+	fieldsMap := make(map[string]interface{})
+	fieldsMap["prefix"] = "yuanboot"
+	if fiedls != nil {
+		fieldsMap = fiedls
+	}
+
+	if log.displayFields {
+		fieldsMap["class"] = log.class
+		hostName, _ := os.Hostname()
+		fieldsMap["host"] = hostName
+	}
+	//fieldsMap["message"] = message
+
+	return log.logger.WithFields(fieldsMap)
 }
 
 func (log *XDefaultLogger) Warning(format string, a ...interface{}) {
-	log.log(WARNING, format, a...)
+	log.With(WARNING, log.fields).Warnf(format, a...)
 }
 
-func (log *XDefaultLogger) Error(format string, a ...interface{}) {
-	log.log(ERROR, format, a...)
+func (log *XDefaultLogger) Info(args ...interface{}) {
+	log.With(INFO, log.fields).Info(args)
+}
+
+func (log *XDefaultLogger) Warn(args ...interface{}) {
+	log.With(WARNING, log.fields).Warn(args)
+}
+
+func (log *XDefaultLogger) Error(args ...interface{}) {
+	log.logger.Out = os.Stderr
+	log.With(ERROR, log.fields).Error(args)
+	log.logger.Out = os.Stdout
+}
+
+func (log *XDefaultLogger) Debug(args ...interface{}) {
+	log.With(DEBUG, log.fields).Debug(args)
+}
+
+func (log *XDefaultLogger) Infof(fmt string, args ...interface{}) {
+	log.With(INFO, log.fields).Infof(fmt, args)
+}
+
+func (log *XDefaultLogger) Warnf(fmt string, args ...interface{}) {
+	log.With(WARNING, log.fields).Warnf(fmt, args)
+}
+
+func (log *XDefaultLogger) Errorf(fmt string, args ...interface{}) {
+	log.logger.Out = os.Stderr
+	log.With(ERROR, log.fields).Errorf(fmt, args)
+	log.logger.Out = os.Stdout
+}
+
+func (log *XDefaultLogger) Debugf(fmt string, args ...interface{}) {
+	log.With(DEBUG, log.fields).Debugf(fmt, args)
+}
+
+func (log *XDefaultLogger) GetOptions() *LogOptions {
+	return log.option
 }

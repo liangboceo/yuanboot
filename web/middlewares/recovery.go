@@ -186,12 +186,12 @@ func (rec *Recovery) Inovke(ctx *context.HttpContext, next func(ctx *context.Htt
 				if !rec.StackAll {
 					infos.Stack = nil
 
-					rec.Logger.Error(panicText, err)
+					rec.Logger.Errorf(panicText, err)
 				} else {
 					// print all stack errors for console
 					errorMsg = string(stack)
-					rec.Logger.Error(panicText, err)
-					rec.Logger.Error(errorMsg)
+					rec.Logger.Errorf(panicText, err)
+					rec.Logger.Errorf(errorMsg)
 				}
 
 			}
@@ -206,8 +206,8 @@ func (rec *Recovery) Inovke(ctx *context.HttpContext, next func(ctx *context.Htt
 				func() {
 					defer func() {
 						if err := recover(); err != nil {
-							rec.Logger.Error("provided PanicHandlerFunc panic'd: %s, trace:\n%s", err, debug.Stack())
-							rec.Logger.Error("%s\n", debug.Stack())
+							rec.Logger.Errorf("provided PanicHandlerFunc panic'd: %s, trace:\n%s", err, debug.Stack())
+							rec.Logger.Errorf("%s\n", debug.Stack())
 						}
 					}()
 					rec.PanicHandlerFunc(infos)

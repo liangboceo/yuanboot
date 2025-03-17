@@ -11,7 +11,7 @@ import (
 )
 
 func UseJwt(router router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded jwt endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded jwt endpoint.")
 	config := router.GetConfiguration()
 	var secretKey string
 	var expires int64
@@ -39,7 +39,7 @@ func UseJwt(router router.IRouterBuilder) {
 				}
 			}
 			if name == "" || id == "" {
-				xlog.GetXLogger("Jwt Endpoint").Debug("Create Token: name: %s , id: %v , token: %s")
+				xlog.GetXLogger("Jwt Endpoint").Debugf("Create Token: name: %s , id: %v , token: %s")
 				ctx.JSON(200, context.H{
 					"token":   "",
 					"expires": 0,
@@ -50,7 +50,7 @@ func UseJwt(router router.IRouterBuilder) {
 
 			uid, _ := strconv.Atoi(id)
 			token, expires := jwt.CreateToken([]byte(secretKey), name, uint(uid), int64(time.Now().Add(time.Hour*time.Duration(expires)).Unix()))
-			xlog.GetXLogger("Jwt Endpoint").Debug("Create Token: ( name: %s , id: %s , token: %s )", name, id, token)
+			xlog.GetXLogger("Jwt Endpoint").Debugf("Create Token: ( name: %s , id: %s , token: %s )", name, id, token)
 			ctx.JSON(200, context.H{
 				"token":   token,
 				"expires": expires,
@@ -58,7 +58,7 @@ func UseJwt(router router.IRouterBuilder) {
 			})
 		})
 	} else {
-		xlog.GetXLogger("Jwt Endpoint").Error("config load error.")
+		xlog.GetXLogger("Jwt Endpoint").Errorf("config load error.")
 	}
 
 }

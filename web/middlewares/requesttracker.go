@@ -32,11 +32,11 @@ func (router *RequestTrackerMiddleware) SetConfiguration(config abstractions.ICo
 
 		router.reporter, _ = reporter.NewGRPCReporter(skyworkingAddr)
 		if router.reporter == nil {
-			router.logger.Debug("new reporter error")
+			router.logger.Debugf("new reporter error")
 		}
 		router.tracer, _ = go2sky.NewTracer(serviceName, go2sky.WithReporter(router.reporter))
 		if router.tracer == nil {
-			router.logger.Debug("new tracer error")
+			router.logger.Debugf("new tracer error")
 		}
 
 	}

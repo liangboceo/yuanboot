@@ -23,7 +23,7 @@ func NewControllerBuilder() *ControllerBuilder {
 
 // AddViews add views to mvc
 func (builder *ControllerBuilder) AddViews(option *view.Option) {
-	xlog.GetXLogger("ControllerBuilder").Debug("add mvc views: %s", option.Path)
+	xlog.GetXLogger("ControllerBuilder").Debugf("add mvc views: %s", option.Path)
 	builder.mvcRouterHandler.Options.ViewOption = option
 }
 
@@ -34,7 +34,7 @@ func (builder *ControllerBuilder) AddViewsByConfig() {
 		option := &view.Option{}
 		section.Unmarshal(option)
 		builder.mvcRouterHandler.Options.ViewOption = option
-		xlog.GetXLogger("ControllerBuilder").Debug("add mvc views: %s", option.Path)
+		xlog.GetXLogger("ControllerBuilder").Debugf("add mvc views: %s", option.Path)
 	}
 }
 
@@ -50,7 +50,7 @@ func (builder *ControllerBuilder) SetConfiguration(configuration abstractions.IC
 
 // add filter to mvc
 func (builder *ControllerBuilder) AddFilter(pattern string, actionFilter IActionFilter) {
-	xlog.GetXLogger("ControllerBuilder").Debug("add mvc filter: %s", pattern)
+	xlog.GetXLogger("ControllerBuilder").Debugf("add mvc filter: %s", pattern)
 	chain := NewActionFilterChain(pattern, actionFilter)
 	builder.mvcRouterHandler.ControllerFilters = append(builder.mvcRouterHandler.ControllerFilters, chain)
 }
@@ -73,18 +73,18 @@ func (builder *ControllerBuilder) AddController(controllerCtor interface{}) {
 	controllerName = strings.ToLower(controllerName)
 	// Create Controller and Action descriptors
 	descriptor, err := NewControllerDescriptor(controllerName, controllerType, controllerCtor)
-	logger.Debug("add mvc controller: [%s]", controllerName)
+	logger.Debugf("add mvc controller: [%s]", controllerName)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Errorf(err.Error())
 		return
 	}
 	builder.mvcRouterHandler.ControllerDescriptors[controllerName] = descriptor
 	descriptors := descriptor.actionDescriptors
 	for _, desc := range descriptors {
-		logger.Debug("add mvc controller action: %s", desc.ActionName)
+		logger.Debugf("add mvc controller action: %s", desc.ActionName)
 		if desc.IsAttributeRoute {
 			builder.mvcRouterHandler.ActionRoutesAttributes.Add(*desc.Route)
-			logger.Debug("add mvc controller action for attributes:{[%s/%s],method=[%s]}", strings.Replace(controllerName, "controller", "", -1), strings.ToLower(desc.ActionName), strings.ToUpper(desc.ActionMethod))
+			logger.Debugf("add mvc controller action for attributes:{[%s/%s],method=[%s]}", strings.Replace(controllerName, "controller", "", -1), strings.ToLower(desc.ActionName), strings.ToUpper(desc.ActionMethod))
 		}
 	}
 }

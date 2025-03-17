@@ -31,16 +31,16 @@ func SendTxtMessage(request GrafanaAlertRequest, config abstractions.IConfigurat
 	tag := request.GetTag()
 	logger := xlog.GetXLogger("wechat")
 	js, _ := json.Marshal(request)
-	logger.Info("Request json: %s", string(js))
+	logger.Infof("Request json: %s", string(js))
 	if tag == "" {
-		logger.Info("no send")
+		logger.Infof("no send")
 		return ""
 	}
 	sendUrl := config.Get(fmt.Sprintf("alert.%s.webhook_url", tag)).(string)
 	linkUrl := config.Get(fmt.Sprintf("alert.%s.link_url", tag)).(string)
-	logger.Info("request tag:%s", tag)
-	logger.Info(sendUrl)
-	logger.Info(linkUrl)
+	logger.Infof("request tag:%s", tag)
+	logger.Infof(sendUrl)
+	logger.Infof(linkUrl)
 
 	var message *MarkdownMessage
 	if request.State == "alerting" && len(request.EvalMatches) > 0 {
@@ -58,7 +58,7 @@ func SendTxtMessage(request GrafanaAlertRequest, config abstractions.IConfigurat
 	}
 	msg, _ := json.Marshal(message)
 	msgStr := string(msg)
-	logger.Info("send message:%s", msgStr)
+	logger.Infof("send message:%s", msgStr)
 
 	//return sendUrl + msgStr
 	return PostWechatMessage(sendUrl, msgStr)

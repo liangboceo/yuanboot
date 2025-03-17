@@ -8,7 +8,7 @@ import (
 )
 
 func UsePrometheus(router router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded prometheus endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded prometheus endpoint.")
 
 	router.GET("/actuator/metrics", web.WarpHttpHandlerFunc(promhttp.Handler()))
 }

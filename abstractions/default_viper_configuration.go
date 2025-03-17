@@ -73,7 +73,7 @@ func NewConfiguration(configContext *ConfigurationContext) *Configuration {
 		panic(err)
 		return nil
 	}
-	log.Debug(configFilePath)
+	log.Debugf(configFilePath)
 
 	configuration := &Configuration{
 		context:   configContext,
@@ -90,9 +90,9 @@ func NewConfiguration(configContext *ConfigurationContext) *Configuration {
 			//remote config
 			configuration.config = defaultConfig
 			configuration.OnWatchRemoteConfigChanged()
-			log.Info("remote config is ready , on changed notify listening ......")
+			log.Infof("remote config is ready , on changed notify listening ......")
 		} else {
-			log.Error("remote config is not ready , switch local.")
+			log.Errorf("remote config is not ready , switch local.")
 		}
 	}
 	configuration.Initialize()
@@ -121,7 +121,7 @@ func (c *Configuration) OnWatchRemoteConfigChanged() {
 		for {
 			<-rc
 			c.RefreshAll()
-			c.log.Info("sync remote config")
+			c.log.Infof("sync remote config")
 		}
 	}(respChan)
 }
@@ -165,7 +165,7 @@ func (c *Configuration) GetSection(name string) IConfiguration {
 func (c *Configuration) Unmarshal(obj interface{}) {
 	err := c.config.Unmarshal(obj, c.context.decoderConfigOption)
 	if err != nil {
-		c.log.Error("unmarshal config is failed, err:", err)
+		c.log.Errorf("unmarshal config is failed, err:", err)
 	}
 }
 

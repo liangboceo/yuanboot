@@ -86,7 +86,7 @@ func (c *cache) GetService(serviceName string) (*Service, error) {
 }
 
 func (c *cache) Stop() {
-	c.log.Debug("cache stopped!")
+	c.log.Debugf("cache stopped!")
 	c.Lock()
 	defer c.Unlock()
 
@@ -164,12 +164,12 @@ func (c *cache) get(service string) ([]*Service, error) {
 	cp := Copy(services)
 
 	if c.isValid(cp, ttl) {
-		c.log.Debug("get by service with cache: %s", service)
+		c.log.Debugf("get by service with cache: %s", service)
 		c.RUnlock()
 		// return services
 		return cp, nil
 	}
-	c.log.Debug("get by service without cache: %s", service)
+	c.log.Debugf("get by service without cache: %s", service)
 	get := func(service string, cached []*Service) ([]*Service, error) {
 		val, err := c.discoveryClient.GetService(service)
 		services := []*Service{val}
@@ -255,7 +255,7 @@ func (c *cache) run(serviceName string) {
 			c.setStatus(err)
 
 			if a > 3 {
-				c.log.Debug("rcache: ", err, " backing off ", d)
+				c.log.Debugf("rcache: ", err, " backing off ", d)
 				a = 0
 			}
 
@@ -277,7 +277,7 @@ func (c *cache) run(serviceName string) {
 			c.setStatus(err)
 
 			if b > 3 {
-				c.log.Debug("rcache: ", err, " backing off ", d)
+				c.log.Debugf("rcache: ", err, " backing off ", d)
 				b = 0
 			}
 

@@ -34,7 +34,7 @@ const (
 var panicHTMLTemplate = template.Must(template.New("PanicPage").Parse(panicText))
 
 func UseViz(router router.IRouterBuilder) {
-	xlog.GetXLogger("Endpoint").Debug("loaded graphViz endpoint.")
+	xlog.GetXLogger("Endpoint").Debugf("loaded graphViz endpoint.")
 
 	router.GET("/actuator/graph", func(ctx *context.HttpContext) {
 		graphType := ctx.Input.QueryDefault("type", "data")

@@ -20,7 +20,7 @@ func NewGreeterServer(dd *IOCDemo) pb.GreeterServer {
 }
 
 func (s *GreeterServer) SayHello(ctx context.Context, r *pb.HelloRequest) (*pb.HelloReply, error) {
-	s.log.Debug("server.SayHello ," + s.demo.Print())
+	s.log.Debugf("server.SayHello ," + s.demo.Print())
 	return &pb.HelloReply{Message: "hello.world.at.server: " + r.Name}, nil
 }
 
@@ -43,7 +43,7 @@ func (s *GreeterServer) SayRecord(stream pb.Greeter_SayRecordServer) error {
 			return err
 		}
 
-		s.log.Debug("server recv resp: %v", resp)
+		s.log.Debugf("server recv resp: %v", resp)
 	}
 }
 
@@ -62,6 +62,6 @@ func (s *GreeterServer) SayRoute(stream pb.Greeter_SayRouteServer) error {
 		}
 
 		n++
-		s.log.Debug("recv client resp at server: %v", resp)
+		s.log.Debugf("recv client resp at server: %v", resp)
 	}
 }

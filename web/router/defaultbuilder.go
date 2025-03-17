@@ -46,7 +46,7 @@ func (router *DefaultRouterBuilder) SetConfiguration(config abstractions.IConfig
 	}
 	if hasPath {
 		router.endPointRouterHandler.Component = serverPath
-		router.log.Info("server.path:  %s", consolecolors.Green(serverPath))
+		router.log.Infof("server.path:  %s", consolecolors.Green(serverPath))
 	}
 
 	if router.mvcControllerBuilder != nil {
@@ -60,7 +60,7 @@ func (router *DefaultRouterBuilder) SetConfiguration(config abstractions.IConfig
 		}
 
 		router.mvcControllerBuilder.GetMvcOptions().MapRoute(mvcTemplate)
-		router.log.Info("mvc.template:  %s", consolecolors.Green(mvcTemplate))
+		router.log.Infof("mvc.template:  %s", consolecolors.Green(mvcTemplate))
 	}
 
 }

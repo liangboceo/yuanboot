@@ -107,7 +107,7 @@ func NewLogger() *Logger {
 
 func (l *Logger) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpContext)) {
 	enEscapeUrl, _ := url.QueryUnescape(ctx.Input.Request.URL.RequestURI())
-	l.ALogger.Info(fmt.Sprintf("[yuanboot] Method: %s Url: %s  Content-Type: %s , Accept: %s",
+	l.ALogger.Infof(fmt.Sprintf("[yuanboot] Method: %s Url: %s  Content-Type: %s , Accept: %s",
 		ctx.Input.Method(), enEscapeUrl,
 		ctx.Input.Header(context.HeaderContentType),
 		ctx.Input.Header(context.HeaderAccept)))
@@ -147,6 +147,6 @@ func (l *Logger) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpCon
 		logInfo.Body,
 	)
 
-	l.ALogger.Info(outLog)
+	l.ALogger.Infof(outLog)
 
 }

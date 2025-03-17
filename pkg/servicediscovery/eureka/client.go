@@ -104,7 +104,7 @@ func (r *Client) loop() {
 			if err := r.conn.DeregisterInstance(r.instance); err != nil {
 				r.logger.Error("during", "Deregister", "err", err)
 			} else {
-				r.logger.Info("Eureka Deregister")
+				r.logger.Infof("Eureka Deregister")
 			}
 			close(q)
 			return

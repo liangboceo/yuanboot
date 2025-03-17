@@ -195,7 +195,7 @@ func PostInfo(ctx *context.HttpContext) {
 
 func getApplicationLifeEvent(life *abstractions.ApplicationLife) {
 	printDataEvent := func(event abstractions.ApplicationEvent) {
-		xlog.GetXLogger("Application Life Event:").Debug("Topic: %s; Event: %v", event.Topic, event.Data)
+		xlog.GetXLogger("Application Life Event:").Debugf("Topic: %s; Event: %v", event.Topic, event.Data)
 		//fmt.Printf("[yuanboot] Topic: %s; Event: %v\n", event.Topic, event.Data)
 	}
 
