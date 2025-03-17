@@ -128,21 +128,38 @@ func (log *XDefaultLogger) Debug(args ...interface{}) {
 }
 
 func (log *XDefaultLogger) Infof(fmt string, args ...interface{}) {
-	log.With(INFO, log.fields).Infof(fmt, args)
+	if len(args) <= 0 {
+		log.With(INFO, log.fields).Info(fmt)
+	} else {
+		log.With(INFO, log.fields).Infof(fmt, args)
+	}
+
 }
 
 func (log *XDefaultLogger) Warnf(fmt string, args ...interface{}) {
-	log.With(WARNING, log.fields).Warnf(fmt, args)
+	if len(args) <= 0 {
+		log.With(WARNING, log.fields).Warn(fmt)
+	} else {
+		log.With(WARNING, log.fields).Warnf(fmt, args)
+	}
 }
 
 func (log *XDefaultLogger) Errorf(fmt string, args ...interface{}) {
 	log.logger.Out = os.Stderr
-	log.With(ERROR, log.fields).Errorf(fmt, args)
+	if len(args) <= 0 {
+		log.With(ERROR, log.fields).Error(fmt)
+	} else {
+		log.With(ERROR, log.fields).Errorf(fmt, args)
+	}
 	log.logger.Out = os.Stdout
 }
 
 func (log *XDefaultLogger) Debugf(fmt string, args ...interface{}) {
-	log.With(DEBUG, log.fields).Debugf(fmt, args)
+	if len(args) <= 0 {
+		log.With(DEBUG, log.fields).Debug(fmt)
+	} else {
+		log.With(DEBUG, log.fields).Debugf(fmt, args)
+	}
 }
 
 func (log *XDefaultLogger) GetLogPath() string {
