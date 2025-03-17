@@ -66,7 +66,7 @@ func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
 		TimeoutMs:           5000,
 		NotLoadCacheAtStart: true,
 		LogLevel:            "info",
-		CacheDir:            logger.GetOptions().LogPath,
+		CacheDir:            logger.GetLogPath(),
 		CustomLogger:        logger,
 	}
 
