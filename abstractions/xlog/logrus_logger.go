@@ -38,6 +38,22 @@ func GetXLogger(class string) ILogger {
 	logger := GetClassLogger(class, option) // NewXLogger()
 	return logger
 }
+func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
+	configViper := viper.New()
+	configViper.SetConfigFile("./log.yml")
+	err := configViper.ReadInConfig()
+	var option *LogOptions
+	if err == nil {
+		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
+	}
+	if err != nil {
+		option = &LogOptions{LogLevel: logLevel, LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "log"}
+	} else {
+		option.LogLevel = logLevel
+	}
+	logger := GetClassLogger(class, option) // NewXLogger()
+	return logger
+}
 
 func GetXLoggerWithFields(class string, fields map[string]interface{}) ILogger {
 	logger := NewXLogger()

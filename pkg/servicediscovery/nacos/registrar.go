@@ -50,7 +50,7 @@ func NewServerDiscoveryWithDI(configuration abstractions.IConfiguration, env *ab
 }
 
 func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
-	logger := xlog.GetXLogger("Server Discovery nacos")
+	logger := xlog.GetXLogger("service-discovery-nacos")
 	nacosRegister := &Registrar{}
 	var serverConfigs []constant.ServerConfig
 	urls := strings.Split(option.Url, ";")
@@ -68,7 +68,7 @@ func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
 		LogLevel:            "error",
 		LogDir:              logger.GetLogPath(),
 		CacheDir:            logger.GetLogPath(),
-		CustomLogger:        logger,
+		CustomLogger:        xlog.GetXLoggerByLogLevel("service-discovery-nacos", "error"),
 	}
 
 	if option.Auth != nil && option.Auth.Enable {
