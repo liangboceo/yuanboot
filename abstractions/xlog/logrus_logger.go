@@ -13,7 +13,7 @@ type LogrusLogger struct {
 	fields        map[string]interface{}
 	displayFields bool
 	class         string
-	option        *LogOptions
+	LogPath       string
 }
 
 type LogOptions struct {
@@ -66,7 +66,7 @@ func NewLogger(options *LogOptions) ILogger {
 		lv = logrus.WarnLevel
 	}
 	logger.SetLevel(lv)
-	return &LogrusLogger{logger: logger, option: options, dateFormat: LoggerDefaultDateFormat}
+	return &LogrusLogger{logger: logger, LogPath: options.LogPath, dateFormat: LoggerDefaultDateFormat}
 }
 
 func GetClassLogger(class string, options *LogOptions) ILogger {
@@ -93,7 +93,7 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 		FullTimestamp:   true,
 		ForceFormatting: true,
 	}
-	return &LogrusLogger{logger: logger, option: options, class: class, dateFormat: LoggerDefaultDateFormat, displayFields: true}
+	return &LogrusLogger{logger: logger, LogPath: options.LogPath, class: class, dateFormat: LoggerDefaultDateFormat, displayFields: true}
 }
 
 func (log *LogrusLogger) With(level LogLevel, fiedls map[string]interface{}) *logrus.Entry {
@@ -168,6 +168,6 @@ func (log *LogrusLogger) SetDateFormat(format string) {
 	//log.dateFormat = format
 }
 
-func (log *LogrusLogger) GetOptions() *LogOptions {
-	return log.option
+func (log *LogrusLogger) GetLogPath() string {
+	return log.LogPath
 }

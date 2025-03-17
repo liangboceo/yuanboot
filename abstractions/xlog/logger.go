@@ -13,5 +13,5 @@ type ILogger interface {
 	Errorf(fmt string, args ...interface{})
 	SetCustomLogFormat(logFormatterFunc func(logInfo interface{}) string)
 	SetDateFormat(format string)
-	GetOptions() *LogOptions
+	GetLogPath() string
 }

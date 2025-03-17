@@ -16,7 +16,7 @@ type XDefaultLogger struct {
 	logFormatter  func(interface{}) string
 	fields        map[string]interface{}
 	displayFields bool
-	option        *LogOptions
+	LogPath       string
 }
 
 func NewXLogger() *XDefaultLogger {
@@ -145,6 +145,6 @@ func (log *XDefaultLogger) Debugf(fmt string, args ...interface{}) {
 	log.With(DEBUG, log.fields).Debugf(fmt, args)
 }
 
-func (log *XDefaultLogger) GetOptions() *LogOptions {
-	return log.option
+func (log *XDefaultLogger) GetLogPath() string {
+	return log.LogPath
 }
