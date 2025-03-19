@@ -1,6 +1,8 @@
 package abstractions
 
 import (
+	"embed"
+
 	"github.com/liangboceo/yuanboot/abstractions/hostenv"
 	"github.com/spf13/viper"
 )
@@ -16,6 +18,7 @@ type ConfigurationContext struct {
 	EnableRemote        bool
 	RemoteProvider      IConfigurationRemoteProvider
 	decoderConfigOption viper.DecoderConfigOption
+	EmbedFS             embed.FS // Add embedded filesystem support
 }
 
 type ConfigurationBuilder struct {
@@ -33,6 +36,11 @@ func (builder *ConfigurationBuilder) AddFlagArgs() *ConfigurationBuilder {
 
 func (builder *ConfigurationBuilder) AddEnvironment() *ConfigurationBuilder {
 	builder.Context.enableEnv = true
+	return builder
+}
+
+func (builder *ConfigurationBuilder) AddEmbedFs(fs embed.FS) *ConfigurationBuilder {
+	builder.Context.EmbedFS = fs
 	return builder
 }
 

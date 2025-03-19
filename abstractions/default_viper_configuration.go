@@ -1,18 +1,20 @@
 package abstractions
 
 import (
+	"bytes"
 	"errors"
 	"flag"
+	"path"
+	"reflect"
+	"strings"
+	"sync"
+
 	"github.com/jinzhu/copier"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
 	"github.com/liangboceo/yuanboot/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"path"
-	"reflect"
-	"strings"
-	"sync"
 )
 
 type Configuration struct {
@@ -69,12 +71,19 @@ func NewConfiguration(configContext *ConfigurationContext) *Configuration {
 		defaultConfig.SetConfigFile(configFilePath)
 	}
 
-	if err := defaultConfig.ReadInConfig(); err != nil {
-		panic(err)
-		return nil
+	// Check for embedded configuration first
+	fileData, err := configContext.EmbedFS.ReadFile(configFilePath)
+	if err == nil {
+		if err := defaultConfig.ReadConfig(bytes.NewReader(fileData)); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := defaultConfig.ReadInConfig(); err != nil {
+			panic(err)
+			return nil
+		}
 	}
 	log.Debugf(configFilePath)
-
 	configuration := &Configuration{
 		context:   configContext,
 		config:    defaultConfig,

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"embed"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/web/actionresult"
 	"github.com/liangboceo/yuanboot/web/actionresult/extension"
@@ -44,6 +45,20 @@ func CreateHttpBuilder(routerConfig func(router router.IRouterBuilder)) *abstrac
 func CreateMvcBuilder(appFunc func(*ApplicationBuilder)) *WebHostBuilder {
 	configuration := abstractions.NewConfigurationBuilder().
 		AddEnvironment().
+		AddYamlFile("config").Build()
+	return NewWebHostBuilder().
+		UseConfiguration(configuration).
+		Configure(func(app *ApplicationBuilder) {
+			app.UseStaticAssets()
+			app.UseMvc(func(builder *mvc.ControllerBuilder) {
+				builder.AddViewsByConfig()
+			})
+		}).Configure(appFunc)
+}
+func CreateMvcBuilderEmbed(appFunc func(*ApplicationBuilder), fs embed.FS) *WebHostBuilder {
+	configuration := abstractions.NewConfigurationBuilder().
+		AddEnvironment().
+		AddEmbedFs(fs).
 		AddYamlFile("config").Build()
 	return NewWebHostBuilder().
 		UseConfiguration(configuration).

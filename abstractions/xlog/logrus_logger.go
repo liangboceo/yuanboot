@@ -1,6 +1,7 @@
 package xlog
 
 import (
+	"bytes"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"io"
@@ -26,8 +27,14 @@ type LogOptions struct {
 
 func GetXLogger(class string) ILogger {
 	configViper := viper.New()
-	configViper.SetConfigFile("./log.yml")
-	err := configViper.ReadInConfig()
+	configViper.SetConfigFile("conf/log.yml")
+	// Check for embedded configuration first
+	fileData, err := Fs.ReadFile(configViper.ConfigFileUsed())
+	if err == nil {
+		err = configViper.ReadConfig(bytes.NewReader(fileData))
+	} else {
+		err = configViper.ReadInConfig()
+	}
 	var option *LogOptions
 	if err == nil {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)

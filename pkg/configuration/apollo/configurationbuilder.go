@@ -1,6 +1,7 @@
 package apollo
 
 import (
+	"embed"
 	"github.com/liangboceo/yuanboot/abstractions"
 )
 
@@ -15,4 +16,8 @@ func AddRemoteWithApollo(builder *abstractions.ConfigurationBuilder) *abstractio
 
 func RemoteConfig(configPath string) *abstractions.Configuration {
 	return AddRemoteWithApollo(abstractions.NewConfigurationBuilder().AddEnvironment().AddYamlFile(configPath)).Build()
+}
+
+func RemoteConfigEmbed(configPath string, fs embed.FS) *abstractions.Configuration {
+	return AddRemoteWithApollo(abstractions.NewConfigurationBuilder().AddEnvironment().AddEmbedFs(fs).AddYamlFile(configPath)).Build()
 }
