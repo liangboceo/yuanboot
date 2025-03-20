@@ -195,9 +195,9 @@ func registerEndpoints(rb router.IRouterBuilder) {
 			Title:          "yuanboot 框架文档演示",
 			Version:        "v1.0.0",
 			Description:    "框架文档演示swagger文档 v1.0 [ #yuanboot](https://github.com/liangboceo/yuanboot).",
-			TermsOfService: "https://dev.yuanboot.run",
+			TermsOfService: "https://www.spicqyxdl.com/",
 			Contact: swagger.Contact{
-				Email: "zl.hxd@hotmail.com",
+				Email: "173120209@qq.com",
 				Name:  "yuanboot",
 			},
 			License: swagger.License{
