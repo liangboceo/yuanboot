@@ -120,10 +120,7 @@ func (registrar *Registrar) Register() error {
 			"yuanboot_application_name":         registrar.config.ENV.ApplicationName,
 		},
 	})
-	if err != nil {
-		registrar.logger.Error(err.Error())
-	}
-	registrar.logger.Debugf("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, success)
+	registrar.logger.Infof("Registrar IP: %s , Success: %v", registrar.config.ENV.Host, success)
 	return err
 }
 
