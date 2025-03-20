@@ -16,12 +16,14 @@ import (
 
 func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc func(openapi *swagger.OpenApi)) {
 	xlog.GetXLogger("Endpoint").Debugf("loaded swagger ui endpoint.")
-
+	baseUrl := router.GetConfiguration().GetString("yuanboot.swagger.public")
 	// swagger.json
 	router.GET("/resources/swagger.json", func(ctx *context.HttpContext) {
 		var env *abstractions.HostEnvironment
 		_ = ctx.RequiredServices.GetService(&env)
-		baseUrl := fmt.Sprintf("http://localhost:%s", env.Port)
+		if baseUrl == "" {
+			baseUrl = fmt.Sprintf("http://localhost:%s", env.Port)
+		}
 		openapi := swagger.NewOpenApi(baseUrl, info)
 
 		configFunc(openapi)
@@ -33,7 +35,9 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 	router.GET("/resources/swagger", func(ctx *context.HttpContext) {
 		var env *abstractions.HostEnvironment
 		_ = ctx.RequiredServices.GetService(&env)
-		baseUrl := fmt.Sprintf("http://localhost:%s", env.Port)
+		if baseUrl == "" {
+			baseUrl = fmt.Sprintf("http://localhost:%s", env.Port)
+		}
 		serverPath := env.MetaData["server.path"]
 		// swagger json address
 		swaggerJsonUri := ""
