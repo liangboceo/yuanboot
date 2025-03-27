@@ -39,11 +39,6 @@ func (builder *ConfigurationBuilder) AddEnvironment() *ConfigurationBuilder {
 	return builder
 }
 
-func (builder *ConfigurationBuilder) AddEmbedFs(fs embed.FS) *ConfigurationBuilder {
-	builder.Context.EmbedFS = fs
-	return builder
-}
-
 func (builder *ConfigurationBuilder) AddYamlFile(name string) *ConfigurationBuilder {
 	if builder.Context.ConfigType == "" {
 		builder.Context.ConfigType = "yml"

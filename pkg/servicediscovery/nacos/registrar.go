@@ -81,7 +81,6 @@ func NewServerDiscovery(option *Config) servicediscovery.IServiceDiscovery {
 		"clientConfig":  clientConfig,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil
 	}
 

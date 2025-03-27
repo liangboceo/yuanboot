@@ -28,7 +28,6 @@ type LogOptions struct {
 func GetXLogger(class string) ILogger {
 	configViper := viper.New()
 	configViper.SetConfigFile("conf/log.yml")
-	// Check for embedded configuration first
 	fileData, err := Fs.ReadFile(configViper.ConfigFileUsed())
 	if err == nil {
 		err = configViper.ReadConfig(bytes.NewReader(fileData))
