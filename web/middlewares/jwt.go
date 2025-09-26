@@ -58,11 +58,13 @@ func (jwtmdw *JwtMiddleware) SetConfiguration(config abstractions.IConfiguration
 }
 
 func (jwtmdw *JwtMiddleware) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpContext)) {
-
-	if !jwtmdw.Enable || utils.Contains(ctx.Input.Path(), jwtmdw.SkipPath) {
+	// 原有逻辑：如果JWT未启用或路径在跳过列表中，则跳过验证
+	if !jwtmdw.Enable || utils.LikeContains(ctx.Input.Path(), jwtmdw.SkipPath) {
 		next(ctx)
 		return
 	}
+
+	// 原有JWT验证逻辑
 	auth := ctx.Input.Header(jwtmdw.Header)
 	if auth == "" {
 		ctx.Output.SetStatus(http.StatusUnauthorized)
@@ -84,5 +86,4 @@ func (jwtmdw *JwtMiddleware) Inovke(ctx *context.HttpContext, next func(ctx *con
 		ctx.SetItem("userinfo", userInfo)
 		next(ctx)
 	}
-
 }

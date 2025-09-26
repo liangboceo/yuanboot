@@ -30,6 +30,7 @@ func LowercaseFirst(str string) string {
 	return ""
 }
 
+// 修改前的 Contains 函数
 func Contains(obj interface{}, target interface{}) bool {
 	targetValue := reflect.ValueOf(target)
 	switch reflect.TypeOf(target).Kind() {
@@ -37,6 +38,46 @@ func Contains(obj interface{}, target interface{}) bool {
 		for i := 0; i < targetValue.Len(); i++ {
 			if targetValue.Index(i).Interface() == obj {
 				return true
+			}
+		}
+	case reflect.Map:
+		if targetValue.MapIndex(reflect.ValueOf(obj)).IsValid() {
+			return true
+		}
+	}
+	return false
+}
+
+// LikeContains 函数，添加了通配符 ** 支持
+func LikeContains(obj interface{}, target interface{}) bool {
+	targetValue := reflect.ValueOf(target)
+	switch reflect.TypeOf(target).Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < targetValue.Len(); i++ {
+			item := targetValue.Index(i).Interface()
+			// 精确匹配
+			if item == obj {
+				return true
+			}
+
+			// 尝试路径通配符匹配
+			if strObj, okObj := obj.(string); okObj {
+				if strItem, okItem := item.(string); okItem {
+					// 检查是否包含通配符 **
+					if strings.Contains(strItem, "**") {
+						// 处理通配符 ** 匹配
+						parts := strings.Split(strItem, "**")
+						if len(parts) == 2 {
+							// 确保前缀匹配
+							if strings.HasPrefix(strObj, parts[0]) {
+								// 如果前缀后面没有其他内容，或者后缀匹配（如果有）
+								if len(parts[1]) == 0 || strings.HasSuffix(strObj, parts[1]) {
+									return true
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	case reflect.Map:
