@@ -4,7 +4,6 @@ import (
 	"embed"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/web/context"
-	"io/fs"
 	"net/http"
 	"os"
 	"strings"
@@ -19,9 +18,6 @@ type ResourceSystem struct {
 	Fs  embed.FS
 	Dir string
 }
-
-var Resources = &ResourceSystem{}
-
 type Static struct {
 	Option *StaticOption
 }
@@ -69,25 +65,6 @@ func (s *Static) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpCon
 
 	exist, err := pathExists(requestFilePath)
 	if !exist || err != nil {
-		entries, err := Resources.Fs.ReadDir(".")
-		if err != nil {
-			next(ctx)
-			return
-		}
-		if len(entries) > 0 {
-			distFs, err := fs.Sub(Resources.Fs, Resources.Dir)
-			if err != nil {
-				next(ctx)
-				return
-			}
-			staticHandle := http.FileServerFS(distFs)
-			if ctx.Input.Request.URL.Path != "/favicon.ico" {
-				if s.Option.IsPrefix {
-					staticHandle = http.StripPrefix(prefixPath, staticHandle)
-				}
-			}
-			staticHandle.ServeHTTP(ctx.Output.GetWriter(), ctx.Input.GetReader())
-		}
 		next(ctx)
 		return
 	}
