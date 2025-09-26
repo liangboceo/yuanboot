@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"embed"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/web/context"
 	"net/http"
@@ -13,6 +14,8 @@ type StaticOption struct {
 	WebRoot     string
 	VirtualPath string
 }
+
+var Resources embed.FS
 
 type Static struct {
 	Option *StaticOption
@@ -61,6 +64,20 @@ func (s *Static) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpCon
 
 	exist, err := pathExists(requestFilePath)
 	if !exist || err != nil {
+		entries, err := Resources.ReadDir(".")
+		if err != nil {
+			next(ctx)
+			return
+		}
+		if len(entries) > 0 {
+			staticHandle := http.FileServerFS(Resources)
+			if ctx.Input.Request.URL.Path != "/favicon.ico" {
+				if s.Option.IsPrefix {
+					staticHandle = http.StripPrefix(prefixPath, staticHandle)
+				}
+			}
+			staticHandle.ServeHTTP(ctx.Output.GetWriter(), ctx.Input.GetReader())
+		}
 		next(ctx)
 		return
 	}
