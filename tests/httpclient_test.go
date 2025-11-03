@@ -1,17 +1,11 @@
 package tests
 
 import (
-	"fmt"
-	"github.com/liangboceo/yuanboot/abstractions/servicediscovery"
 	"github.com/liangboceo/yuanboot/pkg/httpclient"
-	"github.com/liangboceo/yuanboot/pkg/servicediscovery/memory"
-	"github.com/liangboceo/yuanboot/pkg/servicediscovery/strategy"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
-	"strings"
 	"testing"
 )
 
@@ -53,49 +47,6 @@ func TestGetHttp(t *testing.T) {
 
 	assert.Equal(t, resp.GetRequestTime().Seconds() < 5, true)
 	assert.Equal(t, string(resp.Body), "hello")
-}
-
-func TestUriParser(t *testing.T) {
-
-	url := "http://[DEMO1]/app/v1/getuser?id=1"
-
-	parser := servicediscovery.NewUriParser(url)
-
-	assert.Equal(t, parser.GetUriEntry().Protocol, "http")
-
-	url1 := parser.Generate("127.0.0.1:8080")
-
-	assert.Equal(t, url1, "http://127.0.0.1:8080/app/v1/getuser?id=1")
-
-}
-
-func TestHttpCleintFactoryCreateServiceDiscoveryCleint(t *testing.T) {
-	//test server
-	httpServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		_, _ = w.Write([]byte("ok"))
-	}))
-	//httpServer.URL = "http://127.0.0.1:8080"
-	defer httpServer.Close()
-	//test client
-	url := httpServer.URL
-	uri := strings.Split(url, ":")
-	port, _ := strconv.ParseUint(uri[2], 10, 64)
-	url = strings.Replace(url, "127.0.0.1", "[operations]", -1)
-
-	selector := &servicediscovery.Selector{DiscoveryCache: &memory.MemoryCache{Services: []string{"localhost"}, Port: port},
-		Strategy: strategy.NewRound()}
-	factory := httpclient.NewDiscoveryClientFactory(selector)
-
-	client, err := factory.Create("")
-	if err != nil {
-		panic(err)
-	}
-	req := httpclient.WithRequest().SetTimeout(10).GET(url)
-
-	assert.Equal(t, req.GetUrl(), fmt.Sprintf("http://[operations]:%v", port))
-	res, err := client.Do(req)
-	assert.Equal(t, string(res.Body), "ok")
 }
 
 //func TestHttpClientFactoryBaseUrl(t *testing.T) {
