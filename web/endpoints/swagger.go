@@ -17,6 +17,7 @@ import (
 func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc func(openapi *swagger.OpenApi)) {
 	xlog.GetXLogger("Endpoint").Debugf("loaded swagger ui endpoint.")
 	baseUrl := router.GetConfiguration().GetString("yuanboot.swagger.public")
+	swaggerAssetUrl := router.GetConfiguration().GetString("yuanboot.swagger.asset")
 	// swagger.json
 	router.GET("/resources/swagger.json", func(ctx *context.HttpContext) {
 		var env *abstractions.HostEnvironment
@@ -38,6 +39,9 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 		if baseUrl == "" {
 			baseUrl = fmt.Sprintf("http://localhost:%s", env.Port)
 		}
+		if swaggerAssetUrl == "" {
+			swaggerAssetUrl = "https://petstore.swagger.io"
+		}
 		serverPath := env.MetaData["server.path"]
 		// swagger json address
 		swaggerJsonUri := ""
@@ -57,12 +61,12 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 				  content="SwaggerUI"
 				/>
 				<title>SwaggerUI</title>
-				<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.2/swagger-ui.css" />
+				<link rel="stylesheet" href="%s/swagger-ui.css" />
 			  </head>
 			  <body>
 			  <div id="swagger-ui"></div>
-			  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.2/swagger-ui-bundle.js" crossorigin></script>
-			  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.11.2/swagger-ui-standalone-preset.js" crossorigin></script>
+			  <script src="%s/swagger-ui-bundle.js" crossorigin></script>
+			  <script src="%s/swagger-ui-standalone-preset.js" crossorigin></script>
 			  <script>
 				window.onload = () => {
 				  window.ui = SwaggerUIBundle({
@@ -78,7 +82,7 @@ func UseSwaggerDoc(router router.IRouterBuilder, info swagger.Info, configFunc f
 			  </script>
 			  </body>
 			</html>`
-		swaggerUIHTML = fmt.Sprintf(swaggerUIHTML, swaggerJsonUri)
+		swaggerUIHTML = fmt.Sprintf(swaggerUIHTML, swaggerAssetUrl, swaggerAssetUrl, swaggerAssetUrl, swaggerJsonUri)
 		ctx.Output.Header("Content-Type", "text/html; charset=utf-8")
 		_, _ = ctx.Output.Write([]byte(swaggerUIHTML))
 		ctx.Output.SetStatus(200)
