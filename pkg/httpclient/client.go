@@ -206,6 +206,8 @@ func (c *Client) Do(request *Request) (clientResp *Response, err error) {
 			return nil, err
 		}
 		//根据服务名称进行url转化
+		request.url = strings.Replace(request.url, "[", "", -1)
+		request.url = strings.Replace(request.url, "]", "", -1)
 		parser := servicediscovery.NewUriParser(request.url)
 		request.url = parser.Generate(fmt.Sprintf("%s:%v", serverInstance.GetHost(), serverInstance.GetPort()))
 	}
