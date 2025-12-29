@@ -1,4 +1,4 @@
-# yuanboot [中文介绍](https://github.com/liangboceo/yuanboot/blob/master/README-ZHCN.md "中文介绍")
+# yuanboot [中文介绍](https://github.com/liangboceo/yuanboot/blob/master/README.md "中文介绍")
 yuanboot is a simple, light and fast Web framework written in Go. 
 
 * 文档： https://yuanboot.star2cloud.com
