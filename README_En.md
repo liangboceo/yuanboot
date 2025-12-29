@@ -34,7 +34,7 @@ func main() {
 	}).Build().Run()       //默认端口号 :8080
 }
 ```
-![](https://mnur-prod-public.oss-cn-beijing.aliyuncs.com/0/tech/20201209182340.png)
+![](https://yuanboot.star2cloud.com/images/starup.png)
 
 # ToDo
 ## Standard
