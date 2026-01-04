@@ -1,0 +1,5 @@
+yuanboot:
+    log:
+      log_level: info
+      app_name: iot-demo
+      log_path: /mnt/data/log/platform/

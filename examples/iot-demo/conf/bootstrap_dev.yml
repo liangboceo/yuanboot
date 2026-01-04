@@ -1,0 +1,52 @@
+yuanboot:
+  application:
+    name: iot_demo
+    metadata: "develop"
+    server:
+      type: "fasthttp"
+      address: ":8080"
+      path: "app"
+      max_request_size: 2096157
+      session:
+        name: "yuanboot_SESSIONID"
+        timeout: 3600
+      tls:
+        cert: ""
+        key: ""
+      mvc:
+        template: "v1/{controller}/{action}"
+        views:
+          path: "./static/templates"
+          includes: [ "","" ]
+      static:
+        patten: "/"
+        webroot: "./static"
+      jwt:
+        header: "Authorization"
+        secret: "12391JdeOW^%$#@"
+        prefix: "Bearer"
+        expires: 3
+        enable: false
+        skip_path: [
+            "/info",
+            "/v1/user/GetInfo",
+            "/v1/user/GetSD"
+        ]
+      cors:
+        allow_origins: ["*"]
+        allow_methods: ["POST","GET","PUT", "PATCH"]
+        allow_credentials: true
+  datasource:
+    redis:
+      name: reids1
+      url: 10.5.215.33:6379
+      password: rhzl@2014
+      db: 11
+    pool:
+      init_cap: 2
+      max_cap: 5
+      idle_timeout: 5
+  kafka:
+    brokers: 10.5.215.34:9092,10.5.215.34:9093,10.5.215.34:9094
+    topic: default_topic
+    groupId: default_group
