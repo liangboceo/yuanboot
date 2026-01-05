@@ -143,16 +143,16 @@ func (log *LogrusLogger) Warning(format string, a ...interface{}) {
 }
 
 func (log *LogrusLogger) Info(args ...interface{}) {
-	log.With(INFO, log.fields).Info(args)
+	log.With(INFO, log.fields).Info(args...)
 }
 
 func (log *LogrusLogger) Warn(args ...interface{}) {
-	log.With(WARNING, log.fields).Warn(args)
+	log.With(WARNING, log.fields).Warn(args...)
 }
 
 func (log *LogrusLogger) Error(args ...interface{}) {
 	log.logger.Out = os.Stderr
-	log.With(ERROR, log.fields).Error(args)
+	log.With(ERROR, log.fields).Error(args...)
 	log.logger.Out = os.Stdout
 }
 
@@ -164,7 +164,7 @@ func (log *LogrusLogger) Infof(fmt string, args ...interface{}) {
 	if len(args) <= 0 {
 		log.With(INFO, log.fields).Info(fmt)
 	} else {
-		log.With(INFO, log.fields).Infof(fmt, args)
+		log.With(INFO, log.fields).Infof(fmt, args...)
 	}
 
 }
@@ -173,7 +173,7 @@ func (log *LogrusLogger) Warnf(fmt string, args ...interface{}) {
 	if len(args) <= 0 {
 		log.With(WARNING, log.fields).Warn(fmt)
 	} else {
-		log.With(WARNING, log.fields).Warnf(fmt, args)
+		log.With(WARNING, log.fields).Warnf(fmt, args...)
 	}
 }
 
@@ -182,7 +182,7 @@ func (log *LogrusLogger) Errorf(fmt string, args ...interface{}) {
 	if len(args) <= 0 {
 		log.With(ERROR, log.fields).Error(fmt)
 	} else {
-		log.With(ERROR, log.fields).Errorf(fmt, args)
+		log.With(ERROR, log.fields).Errorf(fmt, args...)
 	}
 	log.logger.Out = os.Stdout
 }
@@ -191,7 +191,7 @@ func (log *LogrusLogger) Debugf(fmt string, args ...interface{}) {
 	if len(args) <= 0 {
 		log.With(DEBUG, log.fields).Debug(fmt)
 	} else {
-		log.With(DEBUG, log.fields).Debugf(fmt, args)
+		log.With(DEBUG, log.fields).Debugf(fmt, args...)
 	}
 }
 
