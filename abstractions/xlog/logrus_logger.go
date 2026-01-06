@@ -32,6 +32,7 @@ func GetXLogger(class string) ILogger {
 	if err == nil {
 		err = configViper.ReadConfig(bytes.NewReader(fileData))
 	} else {
+		configViper.SetConfigFile("./log.yml")
 		err = configViper.ReadInConfig()
 	}
 	var option *LogOptions
@@ -62,16 +63,35 @@ func GetXLogger(class string) ILogger {
 }
 func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
 	configViper := viper.New()
-	configViper.SetConfigFile("./log.yml")
-	err := configViper.ReadInConfig()
+	configViper.SetConfigFile("conf/log.yml")
+	fileData, err := Fs.ReadFile(configViper.ConfigFileUsed())
+	if err == nil {
+		err = configViper.ReadConfig(bytes.NewReader(fileData))
+	} else {
+		configViper.SetConfigFile("./log.yml")
+		err = configViper.ReadInConfig()
+	}
 	var option *LogOptions
 	if err == nil {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
 	}
 	if err != nil {
-		option = &LogOptions{LogLevel: logLevel, LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "app"}
+		appName := os.Getenv("YUANBOOT_APP_NAME")
+		logPath := os.Getenv("YUANBOOT_LOG_PATH")
+		if logPath == "" {
+			logPath = "./logs"
+		}
+		if logLevel == "" {
+			logLevel = "debug"
+		}
+		if appName == "" {
+			appName = "app"
+		}
+		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName}
 	} else {
-		option.LogLevel = logLevel
+		_ = os.Setenv("YUANBOOT_APP_NAME", option.AppName)
+		_ = os.Setenv("YUANBOOT_LOG_LEVEL", option.LogLevel)
+		_ = os.Setenv("YUANBOOT_LOG_PATH", option.LogPath)
 	}
 	logger := GetClassLogger(class, option) // NewXLogger()
 	return logger
