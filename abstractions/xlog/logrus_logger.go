@@ -37,8 +37,7 @@ func GetXLogger(class string) ILogger {
 	var option *LogOptions
 	if err == nil {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
-	}
-	if err != nil {
+	} else {
 		option = &LogOptions{LogLevel: "debug", LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "log"}
 	}
 	logger := GetClassLogger(class, option) // NewXLogger()
