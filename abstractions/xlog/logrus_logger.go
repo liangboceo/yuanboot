@@ -92,6 +92,7 @@ func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
 		_ = os.Setenv("YUANBOOT_APP_NAME", option.AppName)
 		_ = os.Setenv("YUANBOOT_LOG_LEVEL", option.LogLevel)
 		_ = os.Setenv("YUANBOOT_LOG_PATH", option.LogPath)
+		option.LogLevel = logLevel
 	}
 	logger := GetClassLogger(class, option) // NewXLogger()
 	return logger
