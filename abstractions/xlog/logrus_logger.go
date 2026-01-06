@@ -37,8 +37,25 @@ func GetXLogger(class string) ILogger {
 	var option *LogOptions
 	if err == nil {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
+	}
+	if err != nil {
+		appName := os.Getenv("YUANBOOT_APP_NAME")
+		logLevel := os.Getenv("YUANBOOT_LOG_LEVEL")
+		logPath := os.Getenv("YUANBOOT_LOG_PATH")
+		if logPath == "" {
+			logPath = "./logs"
+		}
+		if logLevel == "" {
+			logLevel = "debug"
+		}
+		if appName == "" {
+			appName = "app"
+		}
+		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName}
 	} else {
-		option = &LogOptions{LogLevel: "debug", LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "log"}
+		_ = os.Setenv("YUANBOOT_APP_NAME", option.AppName)
+		_ = os.Setenv("YUANBOOT_LOG_LEVEL", option.LogLevel)
+		_ = os.Setenv("YUANBOOT_LOG_PATH", option.LogPath)
 	}
 	logger := GetClassLogger(class, option) // NewXLogger()
 	return logger
@@ -52,7 +69,7 @@ func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
 	}
 	if err != nil {
-		option = &LogOptions{LogLevel: logLevel, LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "log"}
+		option = &LogOptions{LogLevel: logLevel, LogPath: "./log", LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: "app"}
 	} else {
 		option.LogLevel = logLevel
 	}
