@@ -174,6 +174,7 @@ func (a *HourlySplit) update() (err error) {
 
 // Write implement writer
 func (a *HourlySplit) Write(b []byte) (n int, err error) {
+	_, _ = os.Stdout.Write([]byte("[LogPath:" + a.Dir + a.curFileName + "] "))
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
