@@ -43,7 +43,9 @@ func (a *HourlySplit) diskUssage() (disk int64, fnum int64) {
 	if err != nil {
 		return
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		_ = dir.Close()
+	}(dir)
 
 	files, err := dir.Readdir(-1)
 	if err != nil {
@@ -86,7 +88,9 @@ func (a *HourlySplit) keepLimit() error {
 	if err != nil {
 		return err
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		_ = dir.Close()
+	}(dir)
 	if disk >= a.MaxDiskUsage || fnum >= a.MaxFileNumber {
 		var pathDelete []string
 		files, err := dir.Readdir(-1)
@@ -111,10 +115,10 @@ func (a *HourlySplit) keepLimit() error {
 		}
 		for _, path := range pathDelete {
 			if a.curFileName == path {
-				os.Truncate(filepath.Join(a.Dir, path), 1024*1024)
+				_ = os.Truncate(filepath.Join(a.Dir, path), 1024*1024)
 				continue
 			}
-			os.RemoveAll(filepath.Join(a.Dir, path))
+			_ = os.RemoveAll(filepath.Join(a.Dir, path))
 		}
 	}
 	return nil
@@ -128,7 +132,9 @@ func (a *HourlySplit) urgentLimit() error {
 	if err != nil {
 		return err
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		_ = dir.Close()
+	}(dir)
 	files, err := dir.Readdir(-1)
 	if err != nil {
 		return err
@@ -139,14 +145,14 @@ func (a *HourlySplit) urgentLimit() error {
 		}
 		_, err := time.Parse(a.FileFormat, file.Name())
 		if err != nil {
-			os.Truncate(filepath.Join(a.Dir, file.Name()), 1000)
+			_ = os.Truncate(filepath.Join(a.Dir, file.Name()), 1000)
 			continue
 		}
 		if a.curFileName == file.Name() {
-			os.Truncate(filepath.Join(a.Dir, file.Name()), 1000000)
+			_ = os.Truncate(filepath.Join(a.Dir, file.Name()), 1000000)
 			continue
 		}
-		os.RemoveAll(filepath.Join(a.Dir, file.Name()))
+		_ = os.RemoveAll(filepath.Join(a.Dir, file.Name()))
 	}
 	return nil
 }
@@ -159,13 +165,13 @@ func (a *HourlySplit) update() (err error) {
 	if cur.Year() != prev.Year() || cur.YearDay() != prev.YearDay() || cur.Hour() != prev.Hour() {
 		a.prevUpdate = cur
 		if a.file != nil {
-			a.file.Close()
+			_ = a.file.Close()
 		}
 		newFileName := cur.Format(a.FileFormat)
 		a.curFileName = newFileName
 		newFilePath := filepath.Join(a.Dir, newFileName)
-		os.MkdirAll(a.Dir, 0755)
-		a.keepLimit()
+		_ = os.MkdirAll(a.Dir, 0755)
+		_ = a.keepLimit()
 		a.file, err = os.OpenFile(newFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		return err
 	}
@@ -183,7 +189,7 @@ func (a *HourlySplit) Write(b []byte) (n int, err error) {
 		return 0, err
 	}
 	// set write timeout to avoid block when disk full.
-	a.file.SetWriteDeadline(time.Now().Add(time.Second))
+	_ = a.file.SetWriteDeadline(time.Now().Add(time.Second))
 	n, err = a.file.Write(b)
 	return
 }

@@ -94,7 +94,9 @@ func NewLogger(options *LogOptions) ILogger {
 		MaxDiskUsage:  options.LogMaxDiskUsage,
 	}
 	multiWriter := io.MultiWriter(os.Stdout, lw)
-	defer lw.Close()
+	defer func(lw *HourlySplit) {
+		_ = lw.Close()
+	}(lw)
 	logger.SetReportCaller(true)
 	logger.SetOutput(multiWriter)
 	lv, err := logrus.ParseLevel(options.LogLevel)
@@ -113,7 +115,9 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 		MaxFileNumber: int64(options.LogMaxFileNum),
 		MaxDiskUsage:  options.LogMaxDiskUsage,
 	}
-	defer lw.Close()
+	defer func(lw *HourlySplit) {
+		_ = lw.Close()
+	}(lw)
 	multiWriter := io.MultiWriter(os.Stdout, lw)
 	logger.SetReportCaller(true)
 	logger.SetOutput(multiWriter)
