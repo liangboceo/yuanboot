@@ -3,10 +3,12 @@ package xlog
 import (
 	"bytes"
 	"fmt"
+	"github.com/liangboceo/yuanboot/utils"
 	logrus "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"io"
 	"os"
+	"strconv"
 	"syscall"
 )
 
@@ -141,7 +143,7 @@ func (log *LogrusLogger) With(level LogLevel, fiedls map[string]interface{}) *lo
 	//start := time.Now()
 
 	fieldsMap := make(map[string]interface{})
-	fieldsMap["prefix"] = "yuanboot"
+	fieldsMap["prefix"] = "yuanboot-nio-" + strconv.Itoa(syscall.Getpid()) + "-" + utils.GoId()
 	if fiedls != nil {
 		fieldsMap = fiedls
 	}

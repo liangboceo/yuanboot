@@ -3,9 +3,12 @@ package xlog
 import (
 	"fmt"
 	"github.com/liangboceo/yuanboot/abstractions/platform/consolecolors"
+	"github.com/liangboceo/yuanboot/utils"
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
+	"strconv"
+	"syscall"
 	"time"
 )
 
@@ -90,7 +93,7 @@ func (log *XDefaultLogger) With(level LogLevel, fiedls map[string]interface{}) *
 	//start := time.Now()
 
 	fieldsMap := make(map[string]interface{})
-	fieldsMap["prefix"] = "yuanboot"
+	fieldsMap["prefix"] = "yuanboot-nio-" + strconv.Itoa(syscall.Getpid()) + "-" + utils.GoId()
 	if fiedls != nil {
 		fieldsMap = fiedls
 	}
@@ -100,7 +103,6 @@ func (log *XDefaultLogger) With(level LogLevel, fiedls map[string]interface{}) *
 		hostName, _ := os.Hostname()
 		fieldsMap["host"] = hostName
 	}
-	//fieldsMap["message"] = message
 
 	return log.logger.WithFields(fieldsMap)
 }
