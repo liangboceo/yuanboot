@@ -89,7 +89,7 @@ func (demo *IOCDemo) Print() string {
 const ServiceConfig_Tel = `
 yuanboot:
   application:
-    name: yuanboot_grpc_dev
+    name: {{.ModelName}}
     metadata: "develop"
     server:
       type: "grpc"

@@ -87,7 +87,7 @@ require (
 const Config_Tel = `
 yuanboot:
   application:
-    name: yuanboot_demo_dev
+    name: {{.ModelName}}
     metadata: "develop"
     server:
       type: "fasthttp"

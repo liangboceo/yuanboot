@@ -70,7 +70,7 @@ func (*DemoJob) GetJobName() string {
 const Config_Tel = `
 yuanboot:
   application:
-    name: console-xxl-job
+    name: {{.ModelName}}
     metadata: "dev"
     server:
       type: "console"
