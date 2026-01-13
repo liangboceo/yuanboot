@@ -37,11 +37,12 @@ func NewXxlJobService(configuration abstractions.IConfiguration, environment *ab
 	xxlSection := configuration.GetSection("yuanboot.application.xxl")
 	var ops *ExecutorOptions
 	xxlSection.Unmarshal(&ops)
-	ops.RegistryKey = environment.ApplicationName
+	if ops.RegistryKey == "" {
+		ops.RegistryKey = environment.ApplicationName
+	}
 	if ops.ExecutorIp == "" {
 		ops.ExecutorIp = environment.Host
 	}
-
 	service := &XxlJobService{Executor: ops.BuildExecutor(), jobList: jobList}
 	return service
 }
