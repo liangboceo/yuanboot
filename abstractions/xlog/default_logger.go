@@ -120,9 +120,7 @@ func (log *XDefaultLogger) Warn(args ...interface{}) {
 }
 
 func (log *XDefaultLogger) Error(args ...interface{}) {
-	log.logger.Out = os.Stderr
 	log.With(ERROR, log.fields).Error(args...)
-	log.logger.Out = os.Stdout
 }
 
 func (log *XDefaultLogger) Debug(args ...interface{}) {
@@ -147,13 +145,11 @@ func (log *XDefaultLogger) Warnf(fmt string, args ...interface{}) {
 }
 
 func (log *XDefaultLogger) Errorf(fmt string, args ...interface{}) {
-	log.logger.Out = os.Stderr
 	if len(args) <= 0 {
 		log.With(ERROR, log.fields).Error(fmt)
 	} else {
 		log.With(ERROR, log.fields).Errorf(fmt, args...)
 	}
-	log.logger.Out = os.Stdout
 }
 
 func (log *XDefaultLogger) Debugf(fmt string, args ...interface{}) {
