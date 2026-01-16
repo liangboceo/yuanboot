@@ -6,8 +6,8 @@ package binding
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic/decoder"
 	"io"
 	"net/http"
 )
@@ -41,7 +41,7 @@ func (jsonBinding) BindBody(body []byte, obj interface{}) error {
 }
 
 func decodeJSON(r io.Reader, obj interface{}) error {
-	decoder := json.NewDecoder(r)
+	decoder := decoder.NewStreamDecoder(r)
 	if EnableDecoderUseNumber {
 		decoder.UseNumber()
 	}

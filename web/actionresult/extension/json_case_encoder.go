@@ -1,7 +1,8 @@
 package extension
 
 import (
-	"encoding/json"
+	"github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/encoder"
 	"io"
 	"regexp"
 	"strings"
@@ -16,7 +17,7 @@ type CaseJsonEncoder struct {
 }
 
 func (jsonEncoder CaseJsonEncoder) Encode(w io.Writer, data interface{}) error {
-	encoder := json.NewEncoder(w)
+	encoder := encoder.NewStreamEncoder(w)
 	return encoder.Encode(&JsonCamelCase{Value: data})
 }
 
@@ -34,7 +35,7 @@ func LowerFirstCode(str string) string {
 
 func (c JsonCamelCase) MarshalJSON() ([]byte, error) {
 	var keyMatchRegex = regexp.MustCompile(`\"(\w+)\":`)
-	marshalled, err := json.Marshal(c.Value)
+	marshalled, err := sonic.Marshal(c.Value)
 	converted := keyMatchRegex.ReplaceAllFunc(
 		marshalled,
 		func(match []byte) []byte {

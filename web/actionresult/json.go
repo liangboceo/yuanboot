@@ -2,8 +2,9 @@ package actionresult
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/encoder"
 	"github.com/liangboceo/yuanboot/web/actionresult/extension"
 	"html/template"
 	"net/http"
@@ -43,14 +44,14 @@ var jsonAsciiContentType = []string{"application/json"}
 
 func writeJSON(w http.ResponseWriter, obj interface{}) error {
 	writeContentType(w, jsonContentType)
-	encoder := json.NewEncoder(w)
+	encoder := encoder.NewStreamEncoder(w)
 	err := encoder.Encode(&obj)
 	return err
 }
 
 func writeJsonCamel(w http.ResponseWriter, obj interface{}) error {
 	writeContentType(w, jsonContentType)
-	encoder := json.NewEncoder(w)
+	encoder := encoder.NewStreamEncoder(w)
 	err := encoder.Encode(&extension.JsonCamelCase{Value: obj})
 	return err
 }
@@ -79,7 +80,7 @@ func (d Json) WriteContentType(w http.ResponseWriter) {
 // actionresult (IndentedJSON) marshals the given interface object and writes it with custom ContentType.
 func (r IndentedJson) Render(w http.ResponseWriter) error {
 	r.WriteContentType(w)
-	jsonBytes, err := json.MarshalIndent(r.Data, "", "    ")
+	jsonBytes, err := sonic.MarshalIndent(r.Data, "", "    ")
 	if err != nil {
 		return err
 	}
@@ -96,7 +97,7 @@ func (r IndentedJson) WriteContentType(w http.ResponseWriter) {
 // actionresult (SecureJSON) marshals the given interface object and writes it with custom ContentType.
 func (r SecureJson) Render(w http.ResponseWriter) error {
 	r.WriteContentType(w)
-	jsonBytes, err := json.Marshal(r.Data)
+	jsonBytes, err := sonic.Marshal(r.Data)
 	if err != nil {
 		return err
 	}
@@ -119,7 +120,7 @@ func (r SecureJson) WriteContentType(w http.ResponseWriter) {
 // actionresult (Jsonp JSON) marshals the given interface object and writes it and its callback with custom ContentType.
 func (r Jsonp) Render(w http.ResponseWriter) (err error) {
 	r.WriteContentType(w)
-	ret, err := json.Marshal(r.Data)
+	ret, err := sonic.Marshal(r.Data)
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func (r Jsonp) WriteContentType(w http.ResponseWriter) {
 // actionresult (AsciiJSON) marshals the given interface object and writes it with custom ContentType.
 func (r AsciiJson) Render(w http.ResponseWriter) (err error) {
 	r.WriteContentType(w)
-	ret, err := json.Marshal(r.Data)
+	ret, err := sonic.Marshal(r.Data)
 	if err != nil {
 		return err
 	}
@@ -184,7 +185,7 @@ func (r AsciiJson) WriteContentType(w http.ResponseWriter) {
 // actionresult (PureJSON) writes custom ContentType and encodes the given interface object.
 func (r PureJson) Render(w http.ResponseWriter) error {
 	r.WriteContentType(w)
-	encoder := json.NewEncoder(w)
+	encoder := encoder.NewStreamEncoder(w)
 	encoder.SetEscapeHTML(false)
 	return encoder.Encode(r.Data)
 }

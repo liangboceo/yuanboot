@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"encoding/json"
+	"github.com/bytedance/sonic"
 	abshealth "github.com/liangboceo/yuanboot/abstractions/health"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -26,7 +26,7 @@ func TestHealth(t *testing.T) {
 	indicatorList = append(indicatorList, downHealth{}, upHealth{}, abshealth.NewDiskHealthIndicator())
 	builder := abshealth.NewHealthIndicator(indicatorList)
 	m := builder.Build()
-	bytes, _ := json.Marshal(m)
+	bytes, _ := sonic.Marshal(m)
 	jsonstr := string(bytes)
 	assert.NotNil(t, jsonstr)
 }

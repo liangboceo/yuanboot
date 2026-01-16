@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"github.com/bytedance/sonic"
 	"strings"
 	"time"
 )
@@ -68,11 +68,11 @@ func (t *Token) SigningString() (string, error) {
 	for i, _ := range parts {
 		var jsonValue []byte
 		if i == 0 {
-			if jsonValue, err = json.Marshal(t.Header); err != nil {
+			if jsonValue, err = sonic.Marshal(t.Header); err != nil {
 				return "", err
 			}
 		} else {
-			if jsonValue, err = json.Marshal(t.Claims); err != nil {
+			if jsonValue, err = sonic.Marshal(t.Claims); err != nil {
 				return "", err
 			}
 		}

@@ -2,9 +2,9 @@ package httpclient
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -205,7 +205,7 @@ func (c *Request) paraseParams() *Request {
 	}
 
 	if strings.Contains(c.contentType, "application/json") {
-		params, err := json.Marshal(c.params)
+		params, err := sonic.Marshal(c.params)
 		if err != nil {
 			c.errorRaw += err.Error() + "|"
 		}

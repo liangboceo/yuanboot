@@ -2,8 +2,8 @@ package wechatrequests
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
 	"io/ioutil"
@@ -30,7 +30,7 @@ func PostWechatMessage(sendUrl, msg string) string {
 func SendTxtMessage(request GrafanaAlertRequest, config abstractions.IConfiguration) string {
 	tag := request.GetTag()
 	logger := xlog.GetXLogger("wechat")
-	js, _ := json.Marshal(request)
+	js, _ := sonic.Marshal(request)
 	logger.Infof("Request json: %s", string(js))
 	if tag == "" {
 		logger.Infof("no send")
@@ -56,7 +56,7 @@ func SendTxtMessage(request GrafanaAlertRequest, config abstractions.IConfigurat
 			Msgtype: "markdown",
 		}
 	}
-	msg, _ := json.Marshal(message)
+	msg, _ := sonic.Marshal(message)
 	msgStr := string(msg)
 	logger.Infof("send message:%s", msgStr)
 

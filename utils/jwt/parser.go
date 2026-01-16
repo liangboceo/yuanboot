@@ -2,8 +2,9 @@ package jwt
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
+	"github.com/bytedance/sonic/decoder"
 	"strings"
 )
 
@@ -109,7 +110,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 		}
 		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
 	}
-	if err = json.Unmarshal(headerBytes, &token.Header); err != nil {
+	if err = sonic.Unmarshal(headerBytes, &token.Header); err != nil {
 		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
 	}
 
@@ -120,7 +121,7 @@ func (p *Parser) ParseUnverified(tokenString string, claims Claims) (token *Toke
 	if claimBytes, err = DecodeSegment(parts[1]); err != nil {
 		return token, parts, &ValidationError{Inner: err, Errors: ValidationErrorMalformed}
 	}
-	dec := json.NewDecoder(bytes.NewBuffer(claimBytes))
+	dec := decoder.NewStreamDecoder(bytes.NewBuffer(claimBytes))
 	if p.UseJSONNumber {
 		dec.UseNumber()
 	}

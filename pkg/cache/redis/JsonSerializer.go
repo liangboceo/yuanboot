@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"reflect"
 	"strconv"
 )
@@ -28,7 +28,7 @@ func (serializer JsonSerializer) Serialization(value interface{}) ([]byte, error
 		return []byte(value.(string)), nil
 	case reflect.Map:
 	}
-	k, err := json.Marshal(value)
+	k, err := sonic.Marshal(value)
 	return k, err
 }
 
@@ -60,6 +60,6 @@ func (serializer JsonSerializer) Deserialization(byt []byte, ptr interface{}) (e
 			return
 		}
 	}
-	err = json.Unmarshal(byt, &ptr)
+	err = sonic.Unmarshal(byt, &ptr)
 	return
 }

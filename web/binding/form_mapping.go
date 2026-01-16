@@ -5,9 +5,9 @@
 package binding
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bytedance/sonic"
 	"reflect"
 	"strconv"
 	"strings"
@@ -226,9 +226,9 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 		case time.Time:
 			return setTimeField(val, field, value)
 		}
-		return json.Unmarshal(StringToBytes(val), value.Addr().Interface())
+		return sonic.Unmarshal(StringToBytes(val), value.Addr().Interface())
 	case reflect.Map:
-		return json.Unmarshal(StringToBytes(val), value.Addr().Interface())
+		return sonic.Unmarshal(StringToBytes(val), value.Addr().Interface())
 	default:
 		return errUnknownType
 	}

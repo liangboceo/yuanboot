@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"encoding/json"
+	"github.com/bytedance/sonic"
 	"gopkg.in/go-playground/assert.v1"
 	"grafanaalertwebhook/wechatrequests"
 	"testing"
@@ -22,7 +22,7 @@ func TestMessage(t *testing.T) {
 		Msgtype: "markdown",
 	}
 
-	msg, _ := json.Marshal(message)
+	msg, _ := sonic.Marshal(message)
 	msgStr := string(msg)
 
 	//return sendUrl + msgStr

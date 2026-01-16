@@ -1,7 +1,7 @@
 package extension
 
 import (
-	"encoding/json"
+	"github.com/bytedance/sonic/encoder"
 	"io"
 )
 
@@ -9,6 +9,6 @@ type DefaultJsonEncoder struct {
 }
 
 func (jsonEncoder DefaultJsonEncoder) Encode(w io.Writer, data interface{}) error {
-	encoder := json.NewEncoder(w)
+	encoder := encoder.NewStreamEncoder(w)
 	return encoder.Encode(&data)
 }
