@@ -171,9 +171,7 @@ func (log *LogrusLogger) Warn(args ...interface{}) {
 }
 
 func (log *LogrusLogger) Error(args ...interface{}) {
-	log.logger.Out = os.Stderr
 	log.With(ERROR, log.fields).Error(args...)
-	log.logger.Out = os.Stdout
 }
 
 func (log *LogrusLogger) Debug(args ...interface{}) {
@@ -198,13 +196,11 @@ func (log *LogrusLogger) Warnf(fmt string, args ...interface{}) {
 }
 
 func (log *LogrusLogger) Errorf(fmt string, args ...interface{}) {
-	log.logger.Out = os.Stderr
 	if len(args) <= 0 {
 		log.With(ERROR, log.fields).Error(fmt)
 	} else {
 		log.With(ERROR, log.fields).Errorf(fmt, args...)
 	}
-	log.logger.Out = os.Stdout
 }
 
 func (log *LogrusLogger) Debugf(fmt string, args ...interface{}) {
