@@ -94,7 +94,7 @@ func (log *XDefaultLogger) With(level LogLevel, fields map[string]interface{}) *
 	if fields != nil {
 		fieldsMap = fields
 	}
-	fieldsMap["level"] = level
+	fieldsMap["level"] = LevelString[level]
 	if log.displayFields {
 		fieldsMap["class"] = log.class
 		hostName, _ := os.Hostname()
