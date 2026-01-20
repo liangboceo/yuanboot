@@ -188,6 +188,8 @@ yuanboot:
       log_level: info
       app_name: {{.ModelName}}
       log_path: /mnt/data/log/platform/
+      log_type: zap
+      print_stack: true
 `
 
 const Version_Tel = `

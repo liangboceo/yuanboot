@@ -3,3 +3,5 @@ yuanboot:
       log_level: info
       app_name: iot-demo
       log_path: /mnt/data/log/platform/
+      log_type: zap
+      print_stack: true

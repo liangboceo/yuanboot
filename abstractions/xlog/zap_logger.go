@@ -33,7 +33,10 @@ func NewZapLogger(options *LogOptions) ILogger {
 		zapcore.NewCore(getProdEncoder(), w, getZapLogLevel(options.LogLevel)),
 		zapcore.NewCore(getProdEncoder(), zapcore.Lock(os.Stdout), getZapLogLevel(options.LogLevel)),
 	)
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	if options.PrintStack {
+		logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
+	}
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
@@ -61,8 +64,10 @@ func GetZapClassLogger(class string, options *LogOptions) ILogger {
 		zapcore.NewCore(getProdEncoder(), w, getZapLogLevel(options.LogLevel)),
 		zapcore.NewCore(getProdEncoder(), zapcore.Lock(os.Stdout), getZapLogLevel(options.LogLevel)),
 	)
-
-	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	if options.PrintStack {
+		logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel))
+	}
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)

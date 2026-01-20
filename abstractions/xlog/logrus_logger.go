@@ -27,7 +27,8 @@ type LogOptions struct {
 	LogMaxDiskUsage int64  `mapstructure:"log_max_disk_usage"`
 	LogMaxFileNum   int    `mapstructure:"log_max_file_num"`
 	AppName         string `mapstructure:"app_name"`
-	LogType         string `mapstructure:"log_type"` // logrus, zap
+	LogType         string `mapstructure:"log_type"`
+	PrintStack      bool   `mapstructure:"print_stack"` // logrus, zap
 }
 
 func GetXLogger(class string) ILogger {
