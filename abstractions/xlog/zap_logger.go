@@ -41,8 +41,8 @@ func NewZapLogger(options *LogOptions) ILogger {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 	core := zapcore.NewTee(
-		zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(lw), getZapLogLevel(options.LogLevel)),
-		zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(os.Stdout), getZapLogLevel(options.LogLevel)),
+		zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(lw), getZapLogLevel(options.LogLevel)),
+		zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(os.Stdout), getZapLogLevel(options.LogLevel)),
 	)
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	defer func(logger *zap.Logger) {
@@ -82,8 +82,8 @@ func GetZapClassLogger(class string, options *LogOptions) ILogger {
 	}
 
 	core := zapcore.NewTee(
-		zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.AddSync(lw), getZapLogLevel(options.LogLevel)),
-		zapcore.NewCore(zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()), zapcore.AddSync(os.Stdout), getZapLogLevel(options.LogLevel)),
+		zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(lw), getZapLogLevel(options.LogLevel)),
+		zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.AddSync(os.Stdout), getZapLogLevel(options.LogLevel)),
 	)
 
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
@@ -123,7 +123,7 @@ func getZapLogLevel(level string) zapcore.Level {
 
 func (log *ZapLogger) With(level LogLevel, fields map[string]interface{}) *zap.SugaredLogger {
 	var fieldsMap []interface{}
-	fieldsMap = append(fieldsMap, zap.Any("", LevelString[level]))
+	fieldsMap = append(fieldsMap, zap.Any("level", LevelString[level]))
 	fieldsMap = append(fieldsMap, zap.Any("prefix", "yuanboot-nio-"+strconv.Itoa(syscall.Getpid())+"-"+utils.GoId()))
 	if fields != nil {
 		for k, v := range fields {
