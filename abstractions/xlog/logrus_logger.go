@@ -45,7 +45,7 @@ func GetXLogger(class string) ILogger {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
 	}
 	if err != nil {
-		logPath := "log/"
+		logPath := "/mnt/data/log/"
 		appName := fmt.Sprintf("app_%d", syscall.Getpid())
 		logLevel := "debug"
 		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName, LogType: "logrus"}
@@ -68,7 +68,7 @@ func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
 		err = configViper.Sub("yuanboot.log").Unmarshal(&option)
 	}
 	if err != nil {
-		logPath := "log/"
+		logPath := "/mnt/data/log/"
 		appName := fmt.Sprintf("app_%d", syscall.Getpid())
 		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName}
 	} else {
