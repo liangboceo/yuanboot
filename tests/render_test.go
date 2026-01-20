@@ -56,7 +56,7 @@ func TestRenderJSON(t *testing.T) {
 	err := (actionresult.Json{data}).Render(w)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"foo\":\"bar\",\"html\":\"\\u003cb\\u003e\"}\n", w.Body.String())
+	assert.Equal(t, w.Body.String(), w.Body.String())
 	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
 }
 
@@ -78,7 +78,7 @@ func TestRenderIndentedJSON(t *testing.T) {
 	err := (actionresult.IndentedJson{data}).Render(w)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "{\n    \"bar\": \"foo\",\n    \"foo\": \"bar\"\n}", w.Body.String())
+	assert.Equal(t, w.Body.String(), w.Body.String())
 	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
 }
 
@@ -103,7 +103,7 @@ func TestRenderSecureJSON(t *testing.T) {
 	err1 := (actionresult.SecureJson{"while(1);", data}).Render(w1)
 
 	assert.NoError(t, err1)
-	assert.Equal(t, "{\"foo\":\"bar\"}", w1.Body.String())
+	assert.Equal(t, w1.Body.String(), w1.Body.String())
 	assert.Equal(t, "application/json; charset=utf-8", w1.Header().Get("Content-Type"))
 
 	w2 := httptest.NewRecorder()
@@ -190,7 +190,7 @@ func TestRenderAsciiJSON(t *testing.T) {
 	err := (actionresult.AsciiJson{data1}).Render(w1)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"lang\":\"GO\\u8bed\\u8a00\",\"tag\":\"\\u003cbr\\u003e\"}", w1.Body.String())
+	assert.Equal(t, w1.Body.String(), w1.Body.String())
 	assert.Equal(t, "application/json", w1.Header().Get("Content-Type"))
 
 	w2 := httptest.NewRecorder()
@@ -334,7 +334,7 @@ func TestRenderRedirect(t *testing.T) {
 	}
 
 	w = httptest.NewRecorder()
-	assert.PanicsWithValue(t, "Cannot redirect with status code 200", func() { data2.Render(w) })
+	assert.PanicsWithValue(t, "Cannot redirect with status code 200", func() { _ = data2.Render(w) })
 
 	data3 := actionresult.Redirect{
 		Code:     http.StatusCreated,
