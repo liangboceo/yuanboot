@@ -90,11 +90,11 @@ func (log *XDefaultLogger) log(level LogLevel, format string, a ...interface{}) 
 }
 func (log *XDefaultLogger) With(level LogLevel, fields map[string]interface{}) *logrus.Entry {
 	fieldsMap := make(map[string]interface{})
+	fieldsMap["level"] = LevelString[level]
 	fieldsMap["prefix"] = "yuanboot-nio-" + strconv.Itoa(syscall.Getpid()) + "-" + utils.GoId()
 	if fields != nil {
 		fieldsMap = fields
 	}
-	fieldsMap["level"] = LevelString[level]
 	if log.displayFields {
 		fieldsMap["class"] = log.class
 		hostName, _ := os.Hostname()

@@ -140,11 +140,11 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 
 func (log *LogrusLogger) With(level LogLevel, fields map[string]interface{}) *logrus.Entry {
 	fieldsMap := make(map[string]interface{})
+	fieldsMap["level"] = LevelString[level]
 	fieldsMap["prefix"] = "yuanboot-nio-" + strconv.Itoa(syscall.Getpid()) + "-" + utils.GoId()
 	if fields != nil {
 		fieldsMap = fields
 	}
-	fieldsMap["level"] = LevelString[level]
 	if log.displayFields {
 		fieldsMap["class"] = log.class
 		hostName, _ := os.Hostname()
