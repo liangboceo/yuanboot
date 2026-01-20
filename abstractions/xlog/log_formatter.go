@@ -268,7 +268,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 	}
 
 	if f.DisableTimestamp {
-		fmt.Fprintf(b, "%s%s "+messageFormat, level, prefix, message)
+		_, _ = fmt.Fprintf(b, "%s%s "+messageFormat, level, prefix, message)
 	} else {
 		var timestamp string
 		if !f.FullTimestamp {
@@ -276,12 +276,12 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		} else {
 			timestamp = fmt.Sprintf("%s", entry.Time.Format(timestampFormat))
 		}
-		fmt.Fprintf(b, "%s - [%s] - [%s] "+messageFormat, colorScheme.TimestampColor(timestamp), prefix, level, message)
+		_, _ = fmt.Fprintf(b, "%s - [%s] - [%s] "+messageFormat, colorScheme.TimestampColor(timestamp), prefix, level, message)
 	}
 	for _, k := range keys {
 		if k != "prefix" {
 			v := entry.Data[k]
-			fmt.Fprintf(b, " %s=%+v", levelColor(k), v)
+			_, _ = fmt.Fprintf(b, " %s=%+v", levelColor(k), v)
 		}
 	}
 }
@@ -303,7 +303,7 @@ func (f *TextFormatter) needsQuoting(text string) bool {
 
 func extractPrefix(msg string) (string, string) {
 	prefix := ""
-	regex := regexp.MustCompile("^\\[(.*?)\\]")
+	regex := regexp.MustCompile("^\\[(.*?)]")
 	if regex.MatchString(msg) {
 		match := regex.FindString(msg)
 		prefix, msg = match[1:len(match)-1], strings.TrimSpace(msg[len(match):])
@@ -327,29 +327,29 @@ func (f *TextFormatter) appendValue(b *bytes.Buffer, value interface{}) {
 		if !f.needsQuoting(value) {
 			b.WriteString(value)
 		} else {
-			fmt.Fprintf(b, "%s%v%s", f.QuoteCharacter, value, f.QuoteCharacter)
+			_, _ = fmt.Fprintf(b, "%s%v%s", f.QuoteCharacter, value, f.QuoteCharacter)
 		}
 	case error:
 		errmsg := value.Error()
 		if !f.needsQuoting(errmsg) {
 			b.WriteString(errmsg)
 		} else {
-			fmt.Fprintf(b, "%s%v%s", f.QuoteCharacter, errmsg, f.QuoteCharacter)
+			_, _ = fmt.Fprintf(b, "%s%v%s", f.QuoteCharacter, errmsg, f.QuoteCharacter)
 		}
 	default:
-		fmt.Fprint(b, value)
+		_, _ = fmt.Fprint(b, value)
 	}
 }
 
 // This is to not silently overwrite `time`, `msg` and `level` fields when
 // dumping it. If this code wasn't there doing:
 //
-//  logrus.WithField("level", 1).Info("hello")
+//	logrus.WithField("level", 1).Info("hello")
 //
 // would just silently drop the user provided level. Instead with this code
 // it'll be logged as:
 //
-//  {"level": "info", "fields.level": 1, "msg": "hello", "time": "..."}
+//	{"level": "info", "fields.level": 1, "msg": "hello", "time": "..."}
 func prefixFieldClashes(data logrus.Fields) {
 	if t, ok := data["time"]; ok {
 		data["fields.time"] = t
