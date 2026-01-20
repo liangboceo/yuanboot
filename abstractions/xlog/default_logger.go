@@ -89,15 +89,12 @@ func (log *XDefaultLogger) log(level LogLevel, format string, a ...interface{}) 
 	log.logger.Println(log.logFormatter(info))
 }
 func (log *XDefaultLogger) With(level LogLevel, fiedls map[string]interface{}) *logrus.Entry {
-
-	//start := time.Now()
-
 	fieldsMap := make(map[string]interface{})
 	fieldsMap["prefix"] = "yuanboot-nio-" + strconv.Itoa(syscall.Getpid()) + "-" + utils.GoId()
 	if fiedls != nil {
 		fieldsMap = fiedls
 	}
-
+	fieldsMap["level"] = level
 	if log.displayFields {
 		fieldsMap["class"] = log.class
 		hostName, _ := os.Hostname()
