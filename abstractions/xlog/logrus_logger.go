@@ -27,6 +27,7 @@ type LogOptions struct {
 	LogMaxDiskUsage int64  `mapstructure:"log_max_disk_usage"`
 	LogMaxFileNum   int    `mapstructure:"log_max_file_num"`
 	AppName         string `mapstructure:"app_name"`
+	LogType         string `mapstructure:"log_type"` // logrus, zap
 }
 
 func GetXLogger(class string) ILogger {
@@ -47,9 +48,9 @@ func GetXLogger(class string) ILogger {
 		logPath := "/mnt/data/log/"
 		appName := fmt.Sprintf("app_%d", syscall.Getpid())
 		logLevel := "debug"
-		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName}
+		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName, LogType: "logrus"}
 	}
-	logger := GetClassLogger(class, option) // NewXLogger()
+	logger := GetClassLogger(class, option)
 	return logger
 }
 func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
@@ -87,29 +88,14 @@ func GetXLoggerWith(logger ILogger) ILogger {
 	return logger
 }
 
-func NewLogger(options *LogOptions) ILogger {
-	logger := logrus.New()
-	lw := &HourlySplit{
-		Dir:           options.LogPath,
-		FileFormat:    options.AppName + "_2006-01-02T15",
-		MaxFileNumber: int64(options.LogMaxFileNum),
-		MaxDiskUsage:  options.LogMaxDiskUsage,
+func NewLogger(class string, options *LogOptions) ILogger {
+	if options.LogType == "logrus" {
+		return newLogrusLogger(class, options)
 	}
-	multiWriter := io.MultiWriter(os.Stdout, lw)
-	defer func(lw *HourlySplit) {
-		_ = lw.Close()
-	}(lw)
-	logger.SetReportCaller(true)
-	logger.SetOutput(multiWriter)
-	lv, err := logrus.ParseLevel(options.LogLevel)
-	if err != nil {
-		lv = logrus.WarnLevel
-	}
-	logger.SetLevel(lv)
-	return &LogrusLogger{logger: logger, LogPath: options.LogPath, dateFormat: LoggerDefaultDateFormat}
+	return GetZapClassLogger(class, options)
 }
 
-func GetClassLogger(class string, options *LogOptions) ILogger {
+func newLogrusLogger(class string, options *LogOptions) ILogger {
 	logger := logrus.New()
 	lw := &HourlySplit{
 		Dir:           options.LogPath,
@@ -117,10 +103,10 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 		MaxFileNumber: int64(options.LogMaxFileNum),
 		MaxDiskUsage:  options.LogMaxDiskUsage,
 	}
+	multiWriter := io.MultiWriter(os.Stdout, lw)
 	defer func(lw *HourlySplit) {
 		_ = lw.Close()
 	}(lw)
-	multiWriter := io.MultiWriter(os.Stdout, lw)
 	logger.SetReportCaller(true)
 	logger.SetOutput(multiWriter)
 	lv, err := logrus.ParseLevel(options.LogLevel)
@@ -135,7 +121,14 @@ func GetClassLogger(class string, options *LogOptions) ILogger {
 		FullTimestamp:   true,
 		ForceFormatting: true,
 	}
-	return &LogrusLogger{logger: logger, LogPath: options.LogPath, class: class, dateFormat: LoggerDefaultDateFormat, displayFields: true}
+	return &LogrusLogger{logger: logger, class: class, LogPath: options.LogPath, dateFormat: LoggerDefaultDateFormat}
+}
+
+func GetClassLogger(class string, options *LogOptions) ILogger {
+	if options.LogType == "logrus" {
+		return newLogrusLogger(class, options)
+	}
+	return GetZapClassLogger(class, options)
 }
 
 func (log *LogrusLogger) With(level LogLevel, fields map[string]interface{}) *logrus.Entry {
@@ -172,7 +165,7 @@ func (log *LogrusLogger) Error(args ...interface{}) {
 }
 
 func (log *LogrusLogger) Debug(args ...interface{}) {
-	log.With(DEBUG, log.fields).Debug(args)
+	log.With(DEBUG, log.fields).Debug(args...)
 }
 
 func (log *LogrusLogger) Infof(fmt string, args ...interface{}) {
