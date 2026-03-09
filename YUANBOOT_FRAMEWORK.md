@@ -409,6 +409,226 @@ func (f *AuthFilter) OnActionExecuted(ctx *mvc.ActionFilterContext) {
 }
 ```
 
+### 控制器路由注入详解
+
+**1. 控制器注册**
+
+在 YUANBOOT 框架中，控制器通过 `ControllerBuilder` 的 `AddController` 方法注册到路由系统中：
+
+```go
+builder.AddController(controllers.NewUserController) // 注册路由controller
+```
+
+**2. 注册原理**
+
+- **构造函数注入**：`AddController` 接受一个控制器构造函数作为参数
+- **依赖解析**：框架会自动解析构造函数的参数并从依赖注入容器中获取
+- **路由生成**：基于控制器名称和 Action 方法名称自动生成路由
+
+**3. 命名约定**
+
+- **控制器命名**：控制器名称必须以 `Controller` 结尾（如 `UserController`）
+- **Action 命名**：Action 方法名称通常以 HTTP 方法开头（如 `GetUser`、`PostUser`）
+
+**4. 路由生成规则**
+
+默认路由模板：`{controller}/{action}`
+
+**示例：**
+- 控制器：`UserController`
+- Action：`GetUser`
+- 生成路由：`/user/getuser` 或 `/user/get-user`（根据配置）
+
+**5. 路由模板配置**
+
+在配置文件中可以自定义路由模板：
+
+```yaml
+yuanboot:
+  application:
+    server:
+      mvc:
+        template: "v1/{controller}/{action}"
+```
+
+**6. 控制器依赖注入**
+
+**步骤：**
+1. 定义控制器接口和实现
+2. 注册服务到依赖注入容器
+3. 在控制器构造函数中接收依赖
+4. 使用 `AddController` 注册控制器
+
+**示例：**
+
+```go
+// 1. 定义服务接口
+type IUserService interface {
+    GetUser(id string) User
+    CreateUser(user *CreateUserRequest) User
+}
+
+// 2. 实现服务
+type UserService struct {
+    // 依赖
+}
+
+func NewUserService() *UserService {
+    return &UserService{}
+}
+
+func (s *UserService) GetUser(id string) User {
+    // 实现
+}
+
+func (s *UserService) CreateUser(user *CreateUserRequest) User {
+    // 实现
+}
+
+// 3. 注册服务
+func ConfigureServices(serviceCollection *dependencyinjection.ServiceCollection) {
+    serviceCollection.AddSingletonByImplements(NewUserService, new(IUserService))
+}
+
+// 4. 注册控制器
+builder.AddController(controllers.NewUserController)
+```
+
+**7. 高级配置选项**
+
+**启用路由属性**：
+
+```go
+builder.EnableRouteAttributes()
+```
+
+**添加视图**：
+
+```go
+// 从配置文件加载视图
+builder.AddViewsByConfig()
+
+// 手动配置视图
+builder.AddViews(&view.Option{
+    Path: "./static/templates",
+    Extension: ".html",
+})
+```
+
+**添加过滤器**：
+
+```go
+builder.AddFilter("/user/*", &AuthFilter{})
+```
+
+**8. 完整示例**
+
+**控制器定义：**
+
+```go
+package controllers
+
+import (
+    "github.com/liangboceo/yuanboot/web/context"
+    "github.com/liangboceo/yuanboot/web/mvc"
+    "yourapp/services"
+)
+
+type UserController struct {
+    mvc.ApiController `doc:"用户控制器"`
+    userService       services.IUserService
+}
+
+func NewUserController(userService services.IUserService) *UserController {
+    return &UserController{userService: userService}
+}
+
+// GET /app/v1/user/getinfo
+func (c *UserController) GetInfo() mvc.ApiResult {
+    user := c.userService.GetCurrentUser()
+    return c.OK(user)
+}
+
+// POST /app/v1/user/create
+func (c *UserController) PostCreate(request *CreateUserRequest) mvc.ApiResult {
+    user := c.userService.CreateUser(request)
+    return c.OK(user)
+}
+
+// GET /app/v1/user/detail/{id}
+func (c *UserController) GetDetail(id string) mvc.ApiResult {
+    user := c.userService.GetUser(id)
+    return c.OK(user)
+}
+```
+
+**路由注册：**
+
+```go
+app.UseMvc(func(builder *mvc.ControllerBuilder) {
+    builder.AddViewsByConfig()
+    builder.EnableRouteAttributes()
+    builder.AddController(NewUserController)
+    builder.AddFilter("/user/*", &AuthFilter{})
+})
+```
+
+**依赖注入配置：**
+
+```go
+func ConfigureServices(serviceCollection *dependencyinjection.ServiceCollection) {
+    // 注册服务
+    serviceCollection.AddSingletonByImplements(services.NewUserService, new(services.IUserService))
+    
+    // 注册控制器（可选，AddController 会自动处理）
+    // serviceCollection.AddTransient(NewUserController)
+}
+```
+
+**9. 路由属性**
+
+使用路由属性可以更灵活地控制路由：
+
+```go
+import (
+    "github.com/liangboceo/yuanboot/web/mvc"
+)
+
+type UserController struct {
+    mvc.ApiController
+}
+
+// 自定义路由路径
+func (c *UserController) GetProfile(ctx *context.HttpContext) mvc.ApiResult {
+    // 实现
+}
+
+// 使用路由属性
+func (c *UserController) GetUserList(request *struct {
+    mvc.RequestGET `route:"/users/list" doc:"获取用户列表"`
+    Page     int    `form:"page" doc:"页码"`
+    PageSize int    `form:"pageSize" doc:"每页大小"`
+}) mvc.ApiResult {
+    // 实现
+}
+```
+
+**10. 常见问题**
+
+**Q: 控制器注册失败怎么办？**
+A: 检查控制器构造函数参数是否已注册到依赖注入容器，确保参数类型正确。
+
+**Q: 路由不生效怎么办？**
+A: 检查控制器命名是否以 `Controller` 结尾，Action 方法命名是否正确，以及路由模板配置是否正确。
+
+**Q: 如何自定义路由？**
+A: 使用路由属性或修改路由模板配置。
+
+**Q: 控制器的生命周期是怎样的？**
+A: 默认情况下，控制器是瞬态（Transient）的，每次请求都会创建新实例。
+
+通过以上配置，YUANBOOT 框架提供了灵活强大的 MVC 控制器路由系统，支持依赖注入、自动路由生成、路由属性等高级特性，使开发更加便捷和高效。
+
 ### 中间件
 
 **使用内置中间件：**
