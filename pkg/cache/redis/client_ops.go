@@ -81,4 +81,7 @@ type Ops interface {
 	ZScore(key, member string) float64
 	Info() (string, error)
 	ListKeys(page uint64, pattern string, pageSize int64) ([]string, int, error)
+	Publish(channel string, message interface{}) (int64, error)
+	Subscribe(channels ...string) (*Subscription, error)
+	PSubscribe(patterns ...string) (*Subscription, error)
 }

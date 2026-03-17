@@ -479,3 +479,20 @@ func (ops *GoRedisStandaloneOps) ListKeys(page uint64, pattern string, pageSize 
 	keys, _, err := ops.client.Scan(ctx, (page-1)*uint64(pageSize), pattern, pageSize).Result()
 	return keys, len(allKeys), err
 }
+
+// Publish posts a message to the channel
+func (ops *GoRedisStandaloneOps) Publish(channel string, message interface{}) (int64, error) {
+	return ops.client.(*redis.Client).Publish(ctx, channel, message).Result()
+}
+
+// Subscribe subscribes the client to the specified channels
+func (ops *GoRedisStandaloneOps) Subscribe(channels ...string) (*Subscription, error) {
+	ps := ops.client.(*redis.Client).Subscribe(ctx, channels...)
+	return &Subscription{pubsub: ps}, nil
+}
+
+// PSubscribe subscribes the client to the given patterns
+func (ops *GoRedisStandaloneOps) PSubscribe(patterns ...string) (*Subscription, error) {
+	ps := ops.client.(*redis.Client).PSubscribe(ctx, patterns...)
+	return &Subscription{pubsub: ps}, nil
+}

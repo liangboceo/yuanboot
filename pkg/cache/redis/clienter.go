@@ -20,6 +20,8 @@ type IClient interface {
 	GetGeoOps() Geo
 	//GetLockOps Returns the operations performed on locker values.
 	GetLockOps() Lock
+	//GetPubSubOps Returns the operations performed on publish/subscribe values.
+	GetPubSubOps() PubSub
 	Close() error
 	// SetExpire cmd by expire
 	Ping() (string, error)

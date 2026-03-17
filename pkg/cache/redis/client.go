@@ -9,13 +9,14 @@ import (
 
 type Client struct {
 	//------- data struct -----------
-	kv   KV
-	list List
-	hash Hash
-	set  Set
-	zset ZSet
-	geo  Geo
-	lock Lock
+	kv     KV
+	list   List
+	hash   Hash
+	set    Set
+	zset   ZSet
+	geo    Geo
+	lock   Lock
+	pubsub PubSub
 	//-----------------------
 	ops             Ops
 	valueSerializer ISerializer
@@ -37,8 +38,9 @@ func NewClient(options *Options) IClient {
 	zset := ZSet{ops: ops}
 	geo := Geo{ops: ops}
 	lock := Lock{ops: ops}
+	pubsub := PubSub{ops: ops}
 
-	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock}
+	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock, pubsub: pubsub}
 }
 
 /*
@@ -104,6 +106,11 @@ func (c *Client) GetGeoOps() Geo {
 // GetLockOps Returns the operations performed on locker values.
 func (c *Client) GetLockOps() Lock {
 	return c.lock
+}
+
+// GetPubSubOps Returns the operations performed on publish/subscribe values.
+func (c *Client) GetPubSubOps() PubSub {
+	return c.pubsub
 }
 
 // Ping return PONG and error
