@@ -87,6 +87,16 @@ func (ops *GoRedisStandaloneOps) SetNXTtl(key string, value interface{}, duratio
 	return ops.client.SetNX(ctx, key, value, duration).Result()
 }
 
+// SetIfAbsent sets the value if the key does not exist (alias for SetNX)
+func (ops *GoRedisStandaloneOps) SetIfAbsent(key string, value interface{}) (bool, error) {
+	return ops.client.SetNX(ctx, key, value, 0).Result()
+}
+
+// SetIfAbsentWithTTL sets the value with TTL if the key does not exist
+func (ops *GoRedisStandaloneOps) SetIfAbsentWithTTL(key string, value interface{}, duration time.Duration) (bool, error) {
+	return ops.client.SetNX(ctx, key, value, duration).Result()
+}
+
 func (ops *GoRedisStandaloneOps) GetValue(key string) ([]byte, error) {
 	return ops.client.Get(ctx, key).Bytes()
 }

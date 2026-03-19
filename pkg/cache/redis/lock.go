@@ -339,7 +339,7 @@ func (lock *Lock) LockWithContext(ctx context.Context, key string, leaseTime tim
 	go func() {
 		select {
 		case <-ctx.Done():
-			lock.Unlock(key)
+			_ = lock.Unlock(key)
 		}
 	}()
 
