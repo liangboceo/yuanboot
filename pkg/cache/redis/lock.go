@@ -409,3 +409,13 @@ func (lock *Lock) DisposeLock(key string) (error, bool) {
 	err := lock.Unlock(key)
 	return err, err == nil
 }
+
+// SetIfAbsent sets the value if the key does not exist (alias for SetNX)
+func (lock *Lock) SetIfAbsent(key string, value interface{}) (bool, error) {
+	return lock.ops.SetIfAbsent(key, value)
+}
+
+// SetIfAbsentWithTTL sets the value with TTL if the key does not exist
+func (lock *Lock) SetIfAbsentWithTTL(key string, value interface{}, duration time.Duration) (bool, error) {
+	return lock.ops.SetIfAbsentWithTTL(key, value, duration)
+}
