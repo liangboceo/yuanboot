@@ -85,4 +85,5 @@ type Ops interface {
 	Subscribe(channels ...string) (*Subscription, error)
 	PSubscribe(patterns ...string) (*Subscription, error)
 	SetNXTtl(key string, value interface{}, duration time.Duration) (bool, error)
+	Eval(script string, keys []string, args ...interface{}) (interface{}, error)
 }

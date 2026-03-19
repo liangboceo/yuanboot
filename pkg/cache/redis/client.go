@@ -15,7 +15,7 @@ type Client struct {
 	set    Set
 	zset   ZSet
 	geo    Geo
-	lock   Lock
+	lock   *Lock
 	pubsub PubSub
 	//-----------------------
 	ops             Ops
@@ -37,7 +37,7 @@ func NewClient(options *Options) IClient {
 	set := Set{ops: ops}
 	zset := ZSet{ops: ops}
 	geo := Geo{ops: ops}
-	lock := Lock{ops: ops}
+	lock := NewLock(ops)
 	pubsub := PubSub{ops: ops}
 
 	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock, pubsub: pubsub}
@@ -104,7 +104,7 @@ func (c *Client) GetGeoOps() Geo {
 }
 
 // GetLockOps Returns the operations performed on locker values.
-func (c *Client) GetLockOps() Lock {
+func (c *Client) GetLockOps() *Lock {
 	return c.lock
 }
 

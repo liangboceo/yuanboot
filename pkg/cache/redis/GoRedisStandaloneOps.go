@@ -500,3 +500,8 @@ func (ops *GoRedisStandaloneOps) PSubscribe(patterns ...string) (*Subscription, 
 	ps := ops.client.(*redis.Client).PSubscribe(ctx, patterns...)
 	return &Subscription{pubsub: ps}, nil
 }
+
+// Eval executes a Lua script with the given keys and arguments
+func (ops *GoRedisStandaloneOps) Eval(script string, keys []string, args ...interface{}) (interface{}, error) {
+	return ops.client.Eval(ctx, script, keys, args...).Result()
+}
