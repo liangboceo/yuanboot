@@ -83,6 +83,10 @@ func (ops *GoRedisStandaloneOps) SetNX(key string, value interface{}) (bool, err
 	return ops.client.SetNX(ctx, key, value, 0).Result()
 }
 
+func (ops *GoRedisStandaloneOps) SetNXTtl(key string, value interface{}, duration time.Duration) (bool, error) {
+	return ops.client.SetNX(ctx, key, value, duration).Result()
+}
+
 func (ops *GoRedisStandaloneOps) GetValue(key string) ([]byte, error) {
 	return ops.client.Get(ctx, key).Bytes()
 }
