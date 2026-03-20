@@ -8,7 +8,6 @@ require (
 	github.com/fasthttp/websocket v1.5.7
 	github.com/fogleman/gg v1.3.0
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.5.0
@@ -26,6 +25,7 @@ require (
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.17.0
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/shima-park/agollo v1.2.14
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/pflag v1.0.5

@@ -88,4 +88,6 @@ type Ops interface {
 	PSubscribe(patterns ...string) (*Subscription, error)
 	SetNXTtl(key string, value interface{}, duration time.Duration) (bool, error)
 	Eval(script string, keys []string, args ...interface{}) (interface{}, error)
+	Pipeline() Pipeline
+	TxPipeline() Pipeline
 }

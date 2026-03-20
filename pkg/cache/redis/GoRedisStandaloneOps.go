@@ -3,7 +3,7 @@ package redis
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"time"
 )
 
@@ -16,10 +16,52 @@ type GoRedisStandaloneOps struct {
 }
 
 func NewStandaloneOps(options *Options) *GoRedisStandaloneOps {
+	if options == nil {
+		options = &Options{}
+	}
+
+	// 设置默认值
+	if options.PoolSize == 0 {
+		options.PoolSize = 10
+	}
+	if options.MinIdleConns == 0 {
+		options.MinIdleConns = 2
+	}
+	if options.MaxRetries == 0 {
+		options.MaxRetries = 3
+	}
+	if options.MinRetryBackoff == 0 {
+		options.MinRetryBackoff = 8 * time.Millisecond
+	}
+	if options.MaxRetryBackoff == 0 {
+		options.MaxRetryBackoff = 512 * time.Millisecond
+	}
+	if options.DialTimeout == 0 {
+		options.DialTimeout = 5 * time.Second
+	}
+	if options.ReadTimeout == 0 {
+		options.ReadTimeout = 3 * time.Second
+	}
+	if options.WriteTimeout == 0 {
+		options.WriteTimeout = 3 * time.Second
+	}
+	if options.PoolTimeout == 0 {
+		options.PoolTimeout = 4 * time.Second
+	}
+
 	client := redis.NewClient(&redis.Options{
-		Addr:     options.Addr,
-		Password: options.Password,
-		DB:       options.DB,
+		Addr:            options.Addr,
+		Password:        options.Password,
+		DB:              options.DB,
+		PoolSize:        options.PoolSize,
+		MinIdleConns:    options.MinIdleConns,
+		MaxRetries:      options.MaxRetries,
+		MinRetryBackoff: options.MinRetryBackoff,
+		MaxRetryBackoff: options.MaxRetryBackoff,
+		DialTimeout:     options.DialTimeout,
+		ReadTimeout:     options.ReadTimeout,
+		WriteTimeout:    options.WriteTimeout,
+		PoolTimeout:     options.PoolTimeout,
 	})
 	return &GoRedisStandaloneOps{client: client}
 }
@@ -364,7 +406,7 @@ func (ops *GoRedisStandaloneOps) HVals(key string) ([]string, error) {
 }
 
 func (ops *GoRedisStandaloneOps) ZAdd(key string, member ZMember) int64 {
-	return ops.client.ZAdd(ctx, key, &redis.Z{Score: member.Score, Member: member.Member}).Val()
+	return ops.client.ZAdd(ctx, key, redis.Z{Score: member.Score, Member: member.Member}).Val()
 }
 
 func (ops *GoRedisStandaloneOps) ZCard(key string) int64 {
@@ -496,7 +538,7 @@ func (ops *GoRedisStandaloneOps) ListKeys(page uint64, pattern string, pageSize 
 
 // Publish posts a message to the channel
 func (ops *GoRedisStandaloneOps) Publish(channel string, message interface{}) (int64, error) {
-	return ops.client.(*redis.Client).Publish(ctx, channel, message).Result()
+	return ops.client.Publish(ctx, channel, message).Result()
 }
 
 // Subscribe subscribes the client to the specified channels
@@ -509,6 +551,16 @@ func (ops *GoRedisStandaloneOps) Subscribe(channels ...string) (*Subscription, e
 func (ops *GoRedisStandaloneOps) PSubscribe(patterns ...string) (*Subscription, error) {
 	ps := ops.client.(*redis.Client).PSubscribe(ctx, patterns...)
 	return &Subscription{pubsub: ps}, nil
+}
+
+// Pipeline creates a pipeline for batch commands execution
+func (ops *GoRedisStandaloneOps) Pipeline() Pipeline {
+	return NewPipeline(ops.client.(*redis.Client).Pipeline())
+}
+
+// TxPipeline creates a transaction pipeline
+func (ops *GoRedisStandaloneOps) TxPipeline() Pipeline {
+	return NewPipeline(ops.client.(*redis.Client).TxPipeline())
 }
 
 // Eval executes a Lua script with the given keys and arguments

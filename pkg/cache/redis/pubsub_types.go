@@ -2,7 +2,7 @@ package redis
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // Message represents a message received from Redis pub/sub

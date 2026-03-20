@@ -70,6 +70,27 @@ func (c *Client) SetSerializer(serializer ISerializer) {
 	c.valueSerializer = serializer
 }
 
+// WrapClient 包装从连接池获取的 Redis 客户端
+// 这个方法用于将数据源连接池中获取的客户端包装为统一的 IClient 接口
+func WrapClient(client IClient) IClient {
+	return client
+}
+
+// NewClientFromOps 使用已有的 Ops 创建客户端
+// 这个方法允许使用外部创建的 Ops（如从连接池获取的）
+func NewClientFromOps(ops Ops) IClient {
+	kv := KV{ops: ops}
+	list := List{ops: ops}
+	hash := Hash{ops: ops}
+	set := Set{ops: ops}
+	zset := ZSet{ops: ops}
+	geo := Geo{ops: ops}
+	lock := NewLock(ops)
+	pubsub := PubSub{ops: ops}
+
+	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock, pubsub: pubsub}
+}
+
 // GetKVOps Returns the operations performed on simple values (or Strings in Redis terminology).
 func (c *Client) GetKVOps() KV {
 	c.kv.serializer = c.valueSerializer

@@ -19,6 +19,16 @@ type redisConfig struct {
 	Password string                      `mapstructure:"password" config:"password"`
 	DB       int                         `mapstructure:"db" config:"db"`
 	Pool     *datasources.DataSourcePool `mapstructure:"pool" config:"pool"`
+	// v9 连接池配置
+	PoolSize        int `mapstructure:"pool_size" config:"pool_size"`                 // 连接池大小，默认 10
+	MinIdleConns    int `mapstructure:"min_idle_conns" config:"min_idle_conns"`       // 最小空闲连接数，默认 2
+	MaxRetries      int `mapstructure:"max_retries" config:"max_retries"`             // 最大重试次数，默认 3
+	DialTimeout     int `mapstructure:"dial_timeout" config:"dial_timeout"`           // 连接超时（秒），默认 5s
+	ReadTimeout     int `mapstructure:"read_timeout" config:"read_timeout"`           // 读取超时（秒），默认 3s
+	WriteTimeout    int `mapstructure:"write_timeout" config:"write_timeout"`         // 写入超时（秒），默认 3s
+	PoolTimeout     int `mapstructure:"pool_timeout" config:"pool_timeout"`           // 连接池超时（秒），默认 4s
+	MinRetryBackoff int `mapstructure:"min_retry_backoff" config:"min_retry_backoff"` // 最小重试间隔（毫秒），默认 8ms
+	MaxRetryBackoff int `mapstructure:"max_retry_backoff" config:"max_retry_backoff"` // 最大重试间隔（毫秒），默认 512ms
 }
 
 // DataSourcePool 数据源连接池配置
@@ -135,6 +145,35 @@ func createReidsPool(redisdatasourcesConfig redisConfig, log xlog.ILogger) pool.
 		}
 		if redisdatasourcesConfig.DB > 0 {
 			options.DB = redisdatasourcesConfig.DB
+		}
+
+		// v9 连接池配置（从配置文件读取）
+		if redisdatasourcesConfig.PoolSize > 0 {
+			options.PoolSize = redisdatasourcesConfig.PoolSize
+		}
+		if redisdatasourcesConfig.MinIdleConns > 0 {
+			options.MinIdleConns = redisdatasourcesConfig.MinIdleConns
+		}
+		if redisdatasourcesConfig.MaxRetries > 0 {
+			options.MaxRetries = redisdatasourcesConfig.MaxRetries
+		}
+		if redisdatasourcesConfig.DialTimeout > 0 {
+			options.DialTimeout = time.Duration(redisdatasourcesConfig.DialTimeout) * time.Second
+		}
+		if redisdatasourcesConfig.ReadTimeout > 0 {
+			options.ReadTimeout = time.Duration(redisdatasourcesConfig.ReadTimeout) * time.Second
+		}
+		if redisdatasourcesConfig.WriteTimeout > 0 {
+			options.WriteTimeout = time.Duration(redisdatasourcesConfig.WriteTimeout) * time.Second
+		}
+		if redisdatasourcesConfig.PoolTimeout > 0 {
+			options.PoolTimeout = time.Duration(redisdatasourcesConfig.PoolTimeout) * time.Second
+		}
+		if redisdatasourcesConfig.MinRetryBackoff > 0 {
+			options.MinRetryBackoff = time.Duration(redisdatasourcesConfig.MinRetryBackoff) * time.Millisecond
+		}
+		if redisdatasourcesConfig.MaxRetryBackoff > 0 {
+			options.MaxRetryBackoff = time.Duration(redisdatasourcesConfig.MaxRetryBackoff) * time.Millisecond
 		}
 
 		return redis.NewClient(options), nil
