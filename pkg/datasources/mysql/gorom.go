@@ -29,7 +29,8 @@ func NewGormDb(source *MySqlDataSource) *gorm.DB {
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: sqlDB,
 	}), &gorm.Config{
-		Logger: dbLogger,
+		Logger:   dbLogger,
+		ConnPool: sqlDB,
 	})
 
 	if err != nil {
