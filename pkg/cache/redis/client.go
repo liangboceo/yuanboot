@@ -9,14 +9,16 @@ import (
 
 type Client struct {
 	//------- data struct -----------
-	kv     KV
-	list   List
-	hash   Hash
-	set    Set
-	zset   ZSet
-	geo    Geo
-	lock   *Lock
-	pubsub PubSub
+	kv         KV
+	list       List
+	hash       Hash
+	set        Set
+	zset       ZSet
+	geo        Geo
+	lock       *Lock
+	pubsub     PubSub
+	pipeline   Pipeline
+	txPipeline Pipeline
 	//-----------------------
 	ops             Ops
 	valueSerializer ISerializer
@@ -39,8 +41,10 @@ func NewClient(options *Options) IClient {
 	geo := Geo{ops: ops}
 	lock := NewLock(ops)
 	pubsub := PubSub{ops: ops}
+	pipeline := ops.Pipeline()
+	txPipeline := ops.TxPipeline()
 
-	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock, pubsub: pubsub}
+	return &Client{ops: ops, valueSerializer: DefaultSerializer, kv: kv, list: list, hash: hash, set: set, zset: zset, geo: geo, lock: lock, pubsub: pubsub, pipeline: pipeline, txPipeline: txPipeline}
 }
 
 /*
@@ -134,6 +138,16 @@ func (c *Client) GetPubSubOps() PubSub {
 	return c.pubsub
 }
 
+// GetPipeLineOps creates a pipeline for batch commands execution
+func (c *Client) GetPipeLineOps() Pipeline {
+	return c.pipeline
+}
+
+// GetTxPipeLineOps creates a transaction  pipeline for batch commands execution
+func (c *Client) GetTxPipeLineOps() Pipeline {
+	return c.txPipeline
+}
+
 // Ping return PONG and error
 func (c *Client) Ping() (string, error) {
 	return c.ops.Ping()
@@ -176,4 +190,14 @@ func (c *Client) ListKeys(page uint64, pattern string, pageSize int64) ([]string
 }
 func (c *Client) Info() (string, error) {
 	return c.ops.Info()
+}
+
+// GetPipeline creates a  pipeline
+func (c *Client) GetPipeline() Pipeline {
+	return c.ops.Pipeline()
+}
+
+// GetTxPipeline creates a transaction pipeline
+func (c *Client) GetTxPipeline() Pipeline {
+	return c.ops.TxPipeline()
 }
