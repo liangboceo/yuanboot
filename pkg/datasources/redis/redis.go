@@ -175,7 +175,14 @@ func createReidsPool(redisdatasourcesConfig redisConfig, log xlog.ILogger) pool.
 		if redisdatasourcesConfig.MaxRetryBackoff > 0 {
 			options.MaxRetryBackoff = time.Duration(redisdatasourcesConfig.MaxRetryBackoff) * time.Millisecond
 		}
-
+		log.Infof("redis connect PoolSize:%v", redisdatasourcesConfig.PoolSize)
+		log.Infof("redis connect MinIdleConns:%v", redisdatasourcesConfig.MinIdleConns)
+		log.Infof("redis connect MaxRetries:%v", redisdatasourcesConfig.MaxRetries)
+		log.Infof("redis connect DialTimeout:%v", redisdatasourcesConfig.DialTimeout)
+		log.Infof("redis connect WriteTimeout:%v", redisdatasourcesConfig.DialTimeout)
+		log.Infof("redis connect PoolTimeout:%v", redisdatasourcesConfig.PoolTimeout)
+		log.Infof("redis connect MinRetryBackoff:%v", redisdatasourcesConfig.MinRetryBackoff)
+		log.Infof("redis connect MaxRetryBackoff:%v", redisdatasourcesConfig.MaxRetryBackoff)
 		return redis.NewClient(options), nil
 	}
 
