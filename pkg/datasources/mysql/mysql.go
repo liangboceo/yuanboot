@@ -20,6 +20,11 @@ type dataSourceConfig struct {
 	Password string                      `mapstructure:"password" config:"password"`
 	Debug    bool                        `mapstructure:"debug" config:"debug"`
 	Pool     *datasources.DataSourcePool `mapstructure:"pool" config:"pool"`
+	// GORM 连接池配置
+	MaxOpenConns    int `mapstructure:"max_open_conns" config:"max_open_conns"`         // 最大打开连接数，默认 0（无限制）
+	MaxIdleConns    int `mapstructure:"max_idle_conns" config:"max_idle_conns"`         // 最大空闲连接数，默认 2
+	ConnMaxLifetime int `mapstructure:"conn_max_lifetime" config:"conn_max_lifetime"`   // 连接最大生命周期（秒），默认 0（不限制）
+	ConnMaxIdleTime int `mapstructure:"conn_max_idle_time" config:"conn_max_idle_time"` // 连接最大空闲时间（秒），默认 0（不限制）
 }
 
 type MySqlDataSource struct {
@@ -31,6 +36,7 @@ type MySqlDataSource struct {
 	lock             sync.Mutex
 	log              xlog.ILogger
 	isDebug          bool
+	gormPoolConfig   GormPoolConfig
 }
 
 // NewMysqlDataSource 初始化MySQL数据源
@@ -51,6 +57,12 @@ func NewMysqlDataSource(configuration abstractions.IConfiguration) *MySqlDataSou
 		connPool:         make(map[string]pool.Pool, 0),
 		isDebug:          datasourcesConfig.Debug,
 		log:              log,
+		gormPoolConfig: GormPoolConfig{
+			MaxOpenConns:    datasourcesConfig.MaxOpenConns,
+			MaxIdleConns:    datasourcesConfig.MaxIdleConns,
+			ConnMaxLifetime: datasourcesConfig.ConnMaxLifetime,
+			ConnMaxIdleTime: datasourcesConfig.ConnMaxIdleTime,
+		},
 	}
 	if p != nil {
 		dataSource.insertPool(datasourcesConfig.Name, p)
@@ -96,6 +108,11 @@ func (datasource *MySqlDataSource) Ping() bool {
 
 func (datasource *MySqlDataSource) GetConnectionString() string {
 	return datasource.connectionString
+}
+
+// GetGormPoolConfig 获取 GORM 连接池配置
+func (datasource *MySqlDataSource) GetGormPoolConfig() GormPoolConfig {
+	return datasource.gormPoolConfig
 }
 
 func createMysqlPool(datasourcesConfig dataSourceConfig, log xlog.ILogger) pool.Pool {
