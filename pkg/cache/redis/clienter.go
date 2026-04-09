@@ -37,4 +37,8 @@ type IClient interface {
 	RandomKey() (string, error)
 	Info() (string, error)
 	ListKeys(page uint64, pattern string, pageSize int64) ([]string, int, error)
+	// GetPipeline creates a  pipeline
+	GetPipeline() Pipeline
+	// GetTxPipeline creates a transaction pipeline
+	GetTxPipeline() Pipeline
 }
