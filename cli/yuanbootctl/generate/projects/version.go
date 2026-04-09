@@ -2,7 +2,7 @@ package projects
 
 const (
 	//Application Version, such as v1.x.x pre-release
-	Version = "v1.9.2743"
+	Version = "v1.9.2744"
 	//Application logo
 	Logo = `                                          █████                        █████   
                                            ░░███                        ░░███    
