@@ -28,9 +28,9 @@ type Client struct {
 func NewClient(options *Options) IClient {
 	var ops Ops
 	if options.Addrs == nil {
-		ops = NewStandaloneOps(options)
+		ops = NewStandaloneOps(options, DefaultSerializer)
 	} else {
-		ops = NewClusterOps(options)
+		ops = NewClusterOps(options, DefaultSerializer)
 	}
 
 	kv := KV{ops: ops}

@@ -12,10 +12,11 @@ var (
 )
 
 type GoRedisStandaloneOps struct {
-	client redis.Cmdable
+	client          redis.Cmdable
+	valueSerializer ISerializer
 }
 
-func NewStandaloneOps(options *Options) *GoRedisStandaloneOps {
+func NewStandaloneOps(options *Options, serializer ISerializer) *GoRedisStandaloneOps {
 	if options == nil {
 		options = &Options{}
 	}
@@ -63,7 +64,7 @@ func NewStandaloneOps(options *Options) *GoRedisStandaloneOps {
 		WriteTimeout:    options.WriteTimeout,
 		PoolTimeout:     options.PoolTimeout,
 	})
-	return &GoRedisStandaloneOps{client: client}
+	return &GoRedisStandaloneOps{client: client, valueSerializer: serializer}
 }
 
 func (ops *GoRedisStandaloneOps) Ping() (string, error) {
@@ -555,12 +556,12 @@ func (ops *GoRedisStandaloneOps) PSubscribe(patterns ...string) (*Subscription, 
 
 // Pipeline creates a pipeline for batch commands execution
 func (ops *GoRedisStandaloneOps) Pipeline() Pipeline {
-	return NewPipeline(ops.client.(*redis.Client).Pipeline())
+	return NewPipeline(ops.client.(*redis.Client).Pipeline(), ops.valueSerializer)
 }
 
 // TxPipeline creates a transaction pipeline
 func (ops *GoRedisStandaloneOps) TxPipeline() Pipeline {
-	return NewPipeline(ops.client.(*redis.Client).TxPipeline())
+	return NewPipeline(ops.client.(*redis.Client).TxPipeline(), ops.valueSerializer)
 }
 
 // Eval executes a Lua script with the given keys and arguments

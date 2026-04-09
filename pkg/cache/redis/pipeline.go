@@ -12,7 +12,6 @@ import (
 type Pipeline interface {
 	// Set 批量设置值
 	Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd
-
 	// Get 批量获取值
 	Get(key string) *redis.StringCmd
 
@@ -37,6 +36,9 @@ type Pipeline interface {
 	// ZAdd 批量添加有序集合成员
 	ZAdd(key string, members ...redis.Z) *redis.IntCmd
 
+	// SAdd 批量添加无序集合成员
+	SAdd(key string, members ...interface{}) *redis.IntCmd
+
 	// LPush 批量列表左推入
 	LPush(key string, values ...interface{}) *redis.IntCmd
 
@@ -58,16 +60,18 @@ type Pipeline interface {
 
 // GoRedisPipeline 实现 Pipeline 接口
 type GoRedisPipeline struct {
-	client redis.Pipeliner
+	client     redis.Pipeliner
+	serializer ISerializer
 }
 
 // NewPipeline 创建新的 Pipeline
-func NewPipeline(client redis.Pipeliner) Pipeline {
-	return &GoRedisPipeline{client: client}
+func NewPipeline(client redis.Pipeliner, serializer ISerializer) Pipeline {
+	return &GoRedisPipeline{client: client, serializer: serializer}
 }
 
 func (p *GoRedisPipeline) Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
-	return p.client.Set(context.Background(), key, value, expiration)
+	ss, _ := p.serializer.Serialization(value)
+	return p.client.Set(context.Background(), key, ss, expiration)
 }
 
 func (p *GoRedisPipeline) Get(key string) *redis.StringCmd {
@@ -91,7 +95,8 @@ func (p *GoRedisPipeline) IncrBy(key string, value int64) *redis.IntCmd {
 }
 
 func (p *GoRedisPipeline) HSet(key string, field string, value interface{}) *redis.IntCmd {
-	return p.client.HSet(context.Background(), key, field, value)
+	ss, _ := p.serializer.Serialization(value)
+	return p.client.HSet(context.Background(), key, field, ss)
 }
 
 func (p *GoRedisPipeline) HGet(key string, field string) *redis.StringCmd {
@@ -100,6 +105,10 @@ func (p *GoRedisPipeline) HGet(key string, field string) *redis.StringCmd {
 
 func (p *GoRedisPipeline) ZAdd(key string, members ...redis.Z) *redis.IntCmd {
 	return p.client.ZAdd(context.Background(), key, members...)
+}
+
+func (p *GoRedisPipeline) SAdd(key string, members ...interface{}) *redis.IntCmd {
+	return p.client.SAdd(context.Background(), key, members...)
 }
 
 func (p *GoRedisPipeline) LPush(key string, values ...interface{}) *redis.IntCmd {

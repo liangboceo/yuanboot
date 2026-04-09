@@ -8,10 +8,11 @@ import (
 
 type GoRedisClusterOps struct {
 	GoRedisStandaloneOps
-	clusterClient *redis.ClusterClient
+	clusterClient   *redis.ClusterClient
+	valueSerializer ISerializer
 }
 
-func NewClusterOps(options *Options) *GoRedisClusterOps {
+func NewClusterOps(options *Options, serializer ISerializer) *GoRedisClusterOps {
 	if options == nil {
 		options = &Options{}
 	}
@@ -60,7 +61,8 @@ func NewClusterOps(options *Options) *GoRedisClusterOps {
 	})
 	return &GoRedisClusterOps{
 		GoRedisStandaloneOps: GoRedisStandaloneOps{
-			client: client,
+			client:          client,
+			valueSerializer: serializer,
 		},
 		clusterClient: client,
 	}
@@ -90,10 +92,10 @@ func (ops *GoRedisClusterOps) PSubscribe(patterns ...string) (*Subscription, err
 
 // Pipeline creates a pipeline for batch commands execution
 func (ops *GoRedisClusterOps) Pipeline() Pipeline {
-	return NewPipeline(ops.clusterClient.Pipeline())
+	return NewPipeline(ops.clusterClient.Pipeline(), ops.valueSerializer)
 }
 
 // TxPipeline creates a transaction pipeline
 func (ops *GoRedisClusterOps) TxPipeline() Pipeline {
-	return NewPipeline(ops.clusterClient.TxPipeline())
+	return NewPipeline(ops.clusterClient.TxPipeline(), ops.valueSerializer)
 }
