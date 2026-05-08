@@ -174,9 +174,10 @@ func (host *HostBuilder) Build() IServiceHost {
 
 	host.Context.ApplicationServicesDef = services
 	applicationBuilder.SetHostBuildContext(host.Context)
-	host.Context.HostServices = services.Build()              //serviceProvider
+	serviceProvider := services.Build()
+	host.Context.HostServices = serviceProvider               //serviceProvider
 	host.Context.RequestDelegate = applicationBuilder.Build() // ServeHTTP(w http.IResponseWriter, r *http.Request)
-	host.Context.ApplicationServices = services.Build()       //serviceProvider
+	host.Context.ApplicationServices = serviceProvider        //serviceProvider
 
 	if host.lifeConfigure != nil {
 		go host.lifeConfigure(host.Context.ApplicationCycle)
