@@ -24,7 +24,7 @@ yuanbootctl new <TEMPLATE> [-l|--list] [-n <PROJECTNAME>] [-p <TARGETDIR>]
 ### --list
 list all templates
 #### TEMPLATE LIST
-console / webapi / mvc / grpc / xxl-job
+console / webapi / mvc / grpc / xxl-job / iot / simpleweb / microservice
 
 ### -n 
 generate folder by project name <PROJECTNAME>
