@@ -969,5 +969,5 @@ func (c *UserController) GetUser(req *GetUserRequest) mvc.ApiResult {
 
 ## 版本历史
 
-- v1.9.2747 - 当前版本
+- {{.Version}}- 当前版本
 - 完整版本历史请查看 [CHANGELOG](https://github.com/liangboceo/yuanboot/releases)

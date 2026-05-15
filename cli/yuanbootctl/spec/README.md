@@ -1,14 +1,16 @@
-# Yuanboot 框架规格文档
+# {{.ModelName}}
+
+### Yuanboot 框架规格文档
 
 本目录包含 Yuanboot 框架的完整规格说明文档。
 
-## 文档列表
+### 文档列表
 
 | 文档 | 描述 |
 |------|------|
-| [yuanboot.md](./yuanboot.md) | 框架完整使用说明 |
+| [yuanboot.md](spec/yuanboot.md) | 框架完整使用说明 |
 
-## 框架概述
+### 框架概述
 
 Yuanboot 是一个简单、轻量、快速、基于依赖注入的 Go 微服务框架。
 
@@ -29,6 +31,6 @@ go get github.com/liangboceo/yuanboot
 
 ### 版本信息
 
-- 当前版本: v1.9.2747
+- 当前版本: {{.Version}}
 - 官方网站: https://yuanboot.star2cloud.com
 - GitHub: https://github.com/liangboceo/yuanboot

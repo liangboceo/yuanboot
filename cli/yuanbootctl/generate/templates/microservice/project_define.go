@@ -1,6 +1,10 @@
 package microservice
 
-import "github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/projects"
+import (
+	"github.com/liangboceo/yuanboot/cli/yuanbootctl/docker"
+	"github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/projects"
+	"github.com/liangboceo/yuanboot/cli/yuanbootctl/spec"
+)
 
 var Project = projects.NewEmptyProject("microservice", "Complete Microservice Application").With(func(root *projects.ProjectItem) {
 	root.AddDir("cmd").AddFileWithContent("main.go", Main_Tel)
@@ -14,4 +18,10 @@ var Project = projects.NewEmptyProject("microservice", "Complete Microservice Ap
 	root.AddFileWithContent("go.mod", Mod_Tel)
 	root.AddFileWithContent("Makefile", Makefile_Tel)
 	root.AddFileWithContent("README.md", Readme_Tel)
+	root.AddDir("spec").AddFileWithContent("yuanboot.md", spec.YuanbootSpec)
+	root.AddFileWithContent("README.md", spec.ReadMe)
+	root.AddDir("version").AddFileWithContent("version.go", docker.Version_Tel)
+	root.AddFileWithContent("Dockerfile", docker.DockerFile_Tel)
+	root.AddFileWithContent("docker-compose.yml", docker.DockerCompose_Tel)
+	root.AddFileWithContent("build.sh", docker.BuildSh_Tel)
 })
