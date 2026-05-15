@@ -21,7 +21,6 @@ var supportedPlatforms = []struct {
 	{"darwin", "amd64"},
 	{"darwin", "arm64"},
 	{"windows", "amd64"},
-	{"windows", "386"},
 }
 
 var buildOS string
@@ -157,7 +156,26 @@ func buildForPlatform(goos, goarch string) {
 	cmd := fmt.Sprintf("GOOS=%s GOARCH=%s go build -o %s", goos, goarch, outputPath)
 
 	fmt.Printf("Building for %s/%s...\n", goos, goarch)
-	utils.ExecShell(cmd, "")
+
+	// 前置步骤：下载依赖
+	fmt.Println("Running go mod download...")
+	var stderr string
+	_, stderr = utils.ExecShell("go mod download", "")
+	if stderr != "" {
+		fmt.Printf("go mod download stderr: %s\n", stderr)
+	}
+
+	fmt.Println("Running go get -t .")
+	_, stderr = utils.ExecShell("go get -t .", "")
+	if stderr != "" {
+		fmt.Printf("go get -t stderr: %s\n", stderr)
+	}
+
+	// 执行编译
+	_, stderr = utils.ExecShell(cmd, "")
+	if stderr != "" {
+		fmt.Printf("Build stderr: %s\n", stderr)
+	}
 
 	// 如果是 windows 且当前系统不是 windows，还需要编译无后缀版本
 	if goos == "windows" && runtime.GOOS != "windows" {
@@ -166,31 +184,4 @@ func buildForPlatform(goos, goarch string) {
 			os.Rename(outputPath, winextPath)
 		}
 	}
-}
-
-// linux下编译打包（保留兼容）
-func buildProjectWithLinux() {
-	pwd, _ := utils.ExecShell("pwd", "")
-	pwd = strings.Replace(pwd, " ", "", -1)
-	pwd = strings.Replace(pwd, "\r\n", "", -1)
-	pwdArr := utils.Explode("/", pwd)
-	if len(pwdArr) == 0 {
-		return
-	}
-	projectName := pwdArr[len(pwdArr)-1]
-	utils.ExecShell(fmt.Sprintf("go build -o build/%s", projectName), "")
-}
-
-// windows下编译打包（保留兼容）
-func buildProjectWithWindows() {
-	pwd, _ := utils.ExecShell("cd", "")
-	pwd = strings.Replace(pwd, " ", "", -1)
-	pwd = strings.Replace(pwd, "\r\n", "", -1)
-	pwdArr := utils.Explode("\\", pwd)
-	if len(pwdArr) == 0 {
-		return
-	}
-	projectName := pwdArr[len(pwdArr)-1]
-
-	utils.ExecShell(fmt.Sprintf("go build -o build/%s.exe", projectName), "")
 }
