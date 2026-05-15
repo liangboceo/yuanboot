@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 )
 
 type DefaultRouterBuilder struct {
@@ -19,6 +20,7 @@ type DefaultRouterBuilder struct {
 	endPointRouterHandler *EndPointRouterHandler
 	configuration         abstractions.IConfiguration
 	log                   xlog.ILogger
+	mu                    sync.RWMutex // 保护 routeInfoList
 }
 
 func NewRouterBuilder() IRouterBuilder {
@@ -66,6 +68,8 @@ func (router *DefaultRouterBuilder) SetConfiguration(config abstractions.IConfig
 }
 
 func (router *DefaultRouterBuilder) GetRouteInfo() []Info {
+	router.mu.RLock()
+	defer router.mu.RUnlock()
 	return router.routeInfoList
 }
 
@@ -108,7 +112,12 @@ func (router *DefaultRouterBuilder) MapSet(method, path string, handler func(ctx
 	if strings.HasPrefix(path, "/actuator") {
 		routeInfo.Type = "actuator"
 	}
+
+	// 添加写锁保护 routeInfoList
+	router.mu.Lock()
 	router.routeInfoList = append(router.routeInfoList, routeInfo)
+	router.mu.Unlock()
+
 	router.endPointRouterHandler.Insert(method, path, handler)
 }
 

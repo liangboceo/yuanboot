@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 )
 
 // EndPointRouterHandler node.
@@ -15,6 +16,7 @@ type EndPointRouterHandler struct {
 	Component string
 	fullURL   *string
 	Methods   map[string]func(ctx *context.HttpContext)
+	mu        sync.RWMutex // 并发访问保护锁
 }
 
 func (endPoint *EndPointRouterHandler) Invoke(ctx *context.HttpContext, pathComponents []string) func(ctx *context.HttpContext) {
@@ -28,6 +30,9 @@ func (endPoint *EndPointRouterHandler) Invoke(ctx *context.HttpContext, pathComp
 
 // Insert a node into the tree.
 func (endPoint *EndPointRouterHandler) Insert(method, path string, handler func(ctx *context.HttpContext)) {
+	endPoint.mu.Lock()
+	defer endPoint.mu.Unlock()
+
 	endPoint.fullURL = &path
 	components := strings.Split(path, "/")[1:]
 Next:
@@ -49,6 +54,8 @@ Next:
 		endPoint.children = append(endPoint.children, newNode)
 		endPoint = newNode
 	}
+	// 在插入新节点后排序，确保参数路由在最后
+	sort.Slice(endPoint.children, endPoint.Less)
 	endPoint.Methods[method] = handler
 }
 
@@ -62,6 +69,9 @@ func (endPoint *EndPointRouterHandler) Match(ctx *context.HttpContext, pathCompo
 
 // Search the tree.
 func (endPoint *EndPointRouterHandler) search(components []string, params url.Values) *EndPointRouterHandler {
+	endPoint.mu.RLock()
+	defer endPoint.mu.RUnlock()
+
 Next:
 	for cidx, component := range components {
 		if endPoint.Component == component && cidx == 0 {
@@ -70,7 +80,7 @@ Next:
 			return nil
 		}
 
-		sort.Slice(endPoint.children, endPoint.Less)
+		// 不再每次搜索都排序，排序只在 Insert 时进行
 		for _, child := range endPoint.children {
 
 			if child.Component == component || child.param == ':' || child.param == '*' {
