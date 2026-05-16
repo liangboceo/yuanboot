@@ -1,16 +1,20 @@
 package main
 
 import (
+	"embed"
 	"github.com/liangboceo/dependencyinjection"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
-	"github.com/liangboceo/yuanboot/pkg/configuration"
+	nacosconfig "github.com/liangboceo/yuanboot/pkg/configuration/nacos"
 	"github.com/liangboceo/yuanboot/pkg/servicediscovery/nacos"
 	"github.com/liangboceo/yuanboot/web"
 	"github.com/liangboceo/yuanboot/web/context"
 	"github.com/liangboceo/yuanboot/web/endpoints"
 	"github.com/liangboceo/yuanboot/web/router"
 )
+
+//go:embed conf/*.yml
+var fs embed.FS
 
 func main() {
 	host := CreateGatewayBuilder().Build()
@@ -19,17 +23,14 @@ func main() {
 
 // CreateGatewayBuilder 创建网关构建器
 func CreateGatewayBuilder() *abstractions.HostBuilder {
-	config := configuration.LocalConfig("config")
-
 	return web.NewWebHostBuilder().
-		UseConfiguration(config).
+		UseConfiguration(nacosconfig.RemoteConfigEmbed("conf/bootstrap", fs)).
 		Configure(func(app *web.ApplicationBuilder) {
 			app.UseEndpoints(registerGatewayRoutes)
 		}).
 		ConfigureServices(func(serviceCollection *dependencyinjection.ServiceCollection) {
 			// 注册 nacos 服务发现
 			nacos.UseServiceDiscovery(serviceCollection)
-
 			// 注册网关服务
 			RegisterGatewayServices(serviceCollection)
 		}).

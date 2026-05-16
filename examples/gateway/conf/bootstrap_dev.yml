@@ -1,0 +1,16 @@
+yuanboot:
+  cloud:
+    discovery:
+      cache:
+        ttl: 30
+      strategy: "round-robin"
+      type: "nacos"
+      metadata:
+        url: nacos-fat.spicrhdk.com
+        port: 8848
+        namespace: "demo"
+        group: "web"
+        configserver:
+          dataId: "gateway.yaml"
+
+

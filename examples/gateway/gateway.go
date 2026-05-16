@@ -5,18 +5,41 @@ import (
 	"github.com/liangboceo/dependencyinjection"
 	"github.com/liangboceo/yuanboot/abstractions/servicediscovery"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
+	"github.com/liangboceo/yuanboot/pkg/configuration"
 	"github.com/liangboceo/yuanboot/web/context"
+	"github.com/liangboceo/yuanboot/web/middlewares"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
-// Route 路由配置
+// GatewayConfig 网关配置
+type GatewayConfig struct {
+	Routes []RouteConfig `yaml:"routes"`
+}
+
+// GetSection 获取配置节名称
+func (c GatewayConfig) GetSection() string {
+	return "yuanboot.cloud.gateway"
+}
+
+// RouteConfig 路由配置
+type RouteConfig struct {
+	ID         string   `yaml:"id"`
+	URI        string   `yaml:"uri"`        // 如 lb://service-name 或 http://host:port
+	Predicates []string `yaml:"predicates"` // 匹配条件，如 Path=/api/**
+	Filters    []string `yaml:"filters"`    // 过滤器，如 StripPrefix=1
+}
+
+// Route 路由定义
 type Route struct {
-	Path    string // 路由路径，如 /api/, /user/
-	Service string // 后端服务名
-	Rewrite string // 路径重写规则
+	Path    []string // 支持多个路径，如 [/assetservice/**, /inventoryservice/**]
+	Service string   // 后端服务名
+	Filters []string // 过滤器列表
+	RawURI  string   // 原始 URI 配置
 }
 
 // GatewayHandler 网关处理器
@@ -31,9 +54,9 @@ type GatewayHandler struct {
 }
 
 // NewGatewayHandler 创建网关处理器
-func NewGatewayHandler(selector servicediscovery.ISelector, logger xlog.ILogger) *GatewayHandler {
+func NewGatewayHandler(config configuration.OptionsSnapshot[GatewayConfig], selector servicediscovery.ISelector, logger xlog.ILogger) *GatewayHandler {
 	handler := &GatewayHandler{
-		routes:        getDefaultRoutes(),
+		routes:        loadRoutesFromConfig(config),
 		selector:      selector,
 		logger:        logger,
 		stopChan:      make(chan struct{}),
@@ -47,27 +70,66 @@ func NewGatewayHandler(selector servicediscovery.ISelector, logger xlog.ILogger)
 	return handler
 }
 
-// getDefaultRoutes 获取默认路由配置
-func getDefaultRoutes() []Route {
-	return []Route{
-		{Path: "/api/", Service: "yuanboot-api", Rewrite: "/"},
-		{Path: "/user/", Service: "user-service", Rewrite: "/"},
-		{Path: "/order/", Service: "order-service", Rewrite: "/"},
-		{Path: "/product/", Service: "product-service", Rewrite: "/"},
+// loadRoutesFromConfig 从配置对象加载路由
+func loadRoutesFromConfig(config configuration.OptionsSnapshot[GatewayConfig]) []Route {
+	if len(config.CurrentValue().Routes) <= 0 {
+		return []Route{}
 	}
+
+	routes := make([]Route, 0, len(config.CurrentValue().Routes))
+	for _, rc := range config.CurrentValue().Routes {
+		route := Route{
+			Service: extractServiceName(rc.URI),
+			Filters: rc.Filters,
+			RawURI:  rc.URI,
+		}
+
+		// 解析 predicates
+		for _, predicate := range rc.Predicates {
+			if strings.HasPrefix(predicate, "Path=") {
+				// 解析多个路径，用逗号分隔
+				pathsStr := strings.TrimPrefix(predicate, "Path=")
+				paths := strings.Split(pathsStr, ",")
+				for _, p := range paths {
+					p = strings.TrimSpace(p)
+					if p != "" {
+						route.Path = append(route.Path, p)
+					}
+				}
+			}
+		}
+
+		if len(route.Path) > 0 {
+			routes = append(routes, route)
+		}
+	}
+
+	fmt.Printf("Loaded %d routes from config\n", len(routes))
+	return routes
+}
+
+// extractServiceName 从 URI 中提取服务名
+func extractServiceName(uri string) string {
+	// 支持 lb://service-name 格式
+	if strings.HasPrefix(uri, "lb://") {
+		return strings.TrimPrefix(uri, "lb://")
+	}
+	// http:// 或 https:// 格式，返回空，让路由直接转发
+	return ""
 }
 
 // RegisterGatewayServices 注册网关服务
 func RegisterGatewayServices(sc *dependencyinjection.ServiceCollection) {
-	sc.AddSingletonByImplements(
-		func(selector servicediscovery.ISelector, logger xlog.ILogger) *GatewayHandler {
-			return NewGatewayHandler(selector, logger)
-		},
-		new(*GatewayHandler),
-	)
+	// 注册 GatewayConfig
+	configuration.Configure[GatewayConfig](sc)
+
+	// 注册 GatewayHandler
+	sc.AddSingleton(func(config configuration.OptionsSnapshot[GatewayConfig], selector servicediscovery.ISelector) *GatewayHandler {
+		return NewGatewayHandler(config, selector, middlewares.NewLogger().ALogger)
+	})
 }
 
-// HandleProxyRequest 处理代理请求（带完整路径）
+// HandleProxyRequest 处理代理请求
 func (h *GatewayHandler) HandleProxyRequest(ctx *context.HttpContext, path string) {
 	h.logger.Debugf("Gateway received request: %s %s", ctx.Input.Method(), path)
 
@@ -81,22 +143,52 @@ func (h *GatewayHandler) HandleProxyRequest(ctx *context.HttpContext, path strin
 		return
 	}
 
-	// 使用 selector 选择服务实例
-	instance, err := h.selector.Select(route.Service)
-	if err != nil {
-		h.logger.Errorf("Failed to select instance for service %s: %v", route.Service, err)
-		ctx.JSON(http.StatusServiceUnavailable, context.H{
-			"error":   "Service unavailable",
-			"service": route.Service,
-		})
-		return
+	// 应用过滤器
+	targetPath := h.applyFilters(path, route.Filters)
+
+	// 如果是 lb:// 格式，需要通过服务发现
+	if strings.HasPrefix(route.RawURI, "lb://") {
+		instance, err := h.selector.Select(route.Service)
+		if err != nil {
+			h.logger.Errorf("Failed to select instance for service %s: %v", route.Service, err)
+			ctx.JSON(http.StatusServiceUnavailable, context.H{
+				"error":   "Service unavailable",
+				"service": route.Service,
+			})
+			return
+		}
+		h.proxyRequest(ctx, instance, targetPath)
+	} else {
+		// 直接转发到指定地址
+		h.proxyDirectRequest(ctx, route.RawURI, targetPath)
 	}
+}
 
-	// 重写路径
-	targetPath := h.rewritePath(path, route.Rewrite)
+// applyFilters 应用过滤器
+func (h *GatewayHandler) applyFilters(path string, filters []string) string {
+	result := path
+	for _, filter := range filters {
+		if strings.HasPrefix(filter, "StripPrefix=") {
+			parts := strings.Split(filter, "=")
+			if len(parts) == 2 {
+				n, err := strconv.Atoi(parts[1])
+				if err == nil {
+					result = h.stripPrefix(result, n)
+				}
+			}
+		}
+		// 可以添加更多过滤器：AddRequestHeader, RemoveRequestHeader 等
+	}
+	return result
+}
 
-	// 转发请求
-	h.proxyRequest(ctx, instance, targetPath)
+// stripPrefix 移除路径前缀
+func (h *GatewayHandler) stripPrefix(path string, n int) string {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	if len(parts) <= n {
+		return "/"
+	}
+	return "/" + strings.Join(parts[n:], "/")
 }
 
 // HandleRequest 处理请求
@@ -108,25 +200,42 @@ func (h *GatewayHandler) HandleRequest(ctx *context.HttpContext) {
 // matchRoute 匹配路由
 func (h *GatewayHandler) matchRoute(path string) *Route {
 	for i := range h.routes {
-		if len(path) >= len(h.routes[i].Path) && path[:len(h.routes[i].Path)] == h.routes[i].Path {
-			return &h.routes[i]
+		for _, routePath := range h.routes[i].Path {
+			if h.matchPath(path, routePath) {
+				return &h.routes[i]
+			}
 		}
 	}
 	return nil
 }
 
-// rewritePath 重写路径
-func (h *GatewayHandler) rewritePath(originalPath, rewrite string) string {
-	if rewrite == "/" {
-		return originalPath
+// matchPath 匹配路径，支持通配符 **
+func (h *GatewayHandler) matchPath(path, pattern string) bool {
+	// 移除末尾的 / 保持一致
+	path = strings.TrimSuffix(path, "/")
+	pattern = strings.TrimSuffix(pattern, "/")
+
+	// 处理通配符 **
+	if strings.Contains(pattern, "**") {
+		prefix := strings.TrimSuffix(pattern, "/**")
+		prefix = strings.TrimSuffix(prefix, "/**")
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+		return false
 	}
-	// 简单实现：替换前缀
-	for _, route := range h.routes {
-		if len(originalPath) >= len(route.Path) && originalPath[:len(route.Path)] == route.Path {
-			return rewrite + originalPath[len(route.Path):]
+
+	// 处理单层通配符 *
+	if strings.Contains(pattern, "*") {
+		// 将 * 转换为正则表达式
+		parts := strings.Split(pattern, "*")
+		if len(parts) == 2 {
+			return strings.HasPrefix(path, parts[0]) && strings.HasSuffix(path, parts[1])
 		}
 	}
-	return originalPath
+
+	// 精确前缀匹配
+	return len(path) >= len(pattern) && path[:len(pattern)] == pattern
 }
 
 // startCacheRefresh 启动缓存刷新
@@ -150,7 +259,9 @@ func (h *GatewayHandler) refreshCache() {
 	defer h.cacheLock.Unlock()
 
 	for _, route := range h.routes {
-		// 使用 selector 获取服务
+		if route.Service == "" {
+			continue
+		}
 		instance, err := h.selector.Select(route.Service)
 		if err == nil && instance != nil {
 			h.instanceCache[route.Service] = []servicediscovery.ServiceInstance{instance}
@@ -159,14 +270,18 @@ func (h *GatewayHandler) refreshCache() {
 	}
 }
 
-// proxyRequest 代理请求
+// proxyRequest 代理请求（通过服务发现）
 func (h *GatewayHandler) proxyRequest(ctx *context.HttpContext, instance servicediscovery.ServiceInstance, targetPath string) {
-	// 构建目标 URL
 	targetURL := fmt.Sprintf("http://%s:%d%s", instance.GetHost(), instance.GetPort(), targetPath)
+	h.proxyDirectRequest(ctx, targetURL, targetPath)
+}
+
+// proxyDirectRequest 直接代理请求
+func (h *GatewayHandler) proxyDirectRequest(ctx *context.HttpContext, targetBase, targetPath string) {
+	targetURL := targetBase + targetPath
 
 	h.logger.Debugf("Proxying to: %s", targetURL)
 
-	// 创建代理请求
 	req, err := http.NewRequest(ctx.Input.Method(), targetURL, nil)
 	if err != nil {
 		h.logger.Errorf("Failed to create request: %v", err)
@@ -204,7 +319,6 @@ func (h *GatewayHandler) proxyRequest(ctx *context.HttpContext, instance service
 		}
 	}
 
-	// 设置状态码
 	ctx.Output.SetStatusCode(resp.StatusCode)
 
 	// 复制响应体
@@ -227,21 +341,27 @@ func (h *GatewayHandler) Stop() {
 
 // GetRegisteredServices 获取已注册的服务列表
 func (h *GatewayHandler) GetRegisteredServices() []string {
-	services := make([]string, len(h.routes))
-	for i, route := range h.routes {
-		services[i] = route.Service
+	services := make([]string, 0)
+	seen := make(map[string]bool)
+	for _, route := range h.routes {
+		if route.Service != "" && !seen[route.Service] {
+			services = append(services, route.Service)
+			seen[route.Service] = true
+		}
 	}
 	return services
 }
 
 // GetRoutes 获取路由配置
-func (h *GatewayHandler) GetRoutes() []map[string]string {
-	routes := make([]map[string]string, len(h.routes))
+func (h *GatewayHandler) GetRoutes() []map[string]interface{} {
+	routes := make([]map[string]interface{}, len(h.routes))
 	for i, route := range h.routes {
-		routes[i] = map[string]string{
-			"path":    route.Path,
+		routes[i] = map[string]interface{}{
+			"id":      route.RawURI,
+			"uri":     route.RawURI,
+			"paths":   route.Path,
 			"service": route.Service,
-			"rewrite": route.Rewrite,
+			"filters": route.Filters,
 		}
 	}
 	return routes
