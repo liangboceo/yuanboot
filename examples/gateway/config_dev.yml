@@ -1,0 +1,33 @@
+yuanboot:
+  application:
+    name: yuanboot_gateway_dev
+    metadata: "gateway"
+    server:
+      type: "fasthttp"
+      address: ":8080"
+      path: "app"
+      max_request_size: 209615700
+      session:
+        name: "gateway_SESSIONID"
+        timeout: 3600
+      tls:
+        cert: ""
+        key: ""
+  cloud:
+    discovery:
+      cache:
+        ttl: 30
+      strategy: "round-robin"  # round-robin, random, weight-time
+      type: "nacos"
+      metadata:
+        url: "47.100.213.49"
+        port: 8848
+        namespace: "public"
+        group: "DEFAULT_GROUP"
+        cluster: ""
+        configserver:
+          dataId: "gateway_config"
+        auth:
+          enable: false
+          username: "nacos"
+          password: "P@ssW0rd"
