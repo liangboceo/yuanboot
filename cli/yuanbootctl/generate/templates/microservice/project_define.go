@@ -7,7 +7,7 @@ import (
 )
 
 var Project = projects.NewEmptyProject("microservice", "Complete Microservice Application").With(func(root *projects.ProjectItem) {
-	root.AddDir("cmd").AddFileWithContent("main.go", Main_Tel)
+	root.AddFileWithContent("main.go", Main_Tel)
 	root.AddDir("internal").AddDir("controller").AddFileWithContent("user_controller.go", UserController_Tel)
 	root.AddDir("internal").AddDir("service").AddFileWithContent("user_service.go", UserService_Tel)
 	root.AddDir("internal").AddDir("repository").AddFileWithContent("user_repository.go", UserRepository_Tel)
