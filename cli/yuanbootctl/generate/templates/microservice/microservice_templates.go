@@ -3,48 +3,60 @@ package microservice
 const Main_Tel = `package main
 
 import (
+	"embed"
+	"github.com/liangboceo/dependencyinjection"
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
-	"github.com/liangboceo/dependencyinjection"
 	"github.com/liangboceo/yuanboot/pkg/servicediscovery/nacos"
 	"github.com/liangboceo/yuanboot/web"
-	"github.com/liangboceo/yuanboot/web/context"
+	"github.com/liangboceo/yuanboot/web/actionresult/extension"
 	"github.com/liangboceo/yuanboot/web/endpoints"
+	"github.com/liangboceo/yuanboot/web/middlewares"
 	"github.com/liangboceo/yuanboot/web/mvc"
 	"github.com/liangboceo/yuanboot/web/router"
 	"{{.ModelName}}/internal/controller"
 	"{{.ModelName}}/internal/middleware"
+	"{{.ModelName}}/internal/repository"
 	"{{.ModelName}}/internal/service"
+	"{{.ModelName}}/version"
 )
 
+//go:embed  config/*.yml
+var fs embed.FS
+
 func main() {
+	xlog.Fs = fs
 	host := CreateHostBuilder().Build()
+	host.SetAppMode(version.Env())
 	host.Run()
 }
 
 func CreateHostBuilder() *abstractions.HostBuilder {
 	config := abstractions.NewConfigurationBuilder().
-		AddEnvironment().
+		AddEnvironment().AddEmbedFs(fs).
 		AddYamlFile("config/config").Build()
 
 	return web.NewWebHostBuilder().
 		UseConfiguration(config).
 		Configure(func(app *web.ApplicationBuilder) {
-			app.UseMiddleware(middleware.NewRecovery())
-			app.UseMiddleware(middleware.NewLogger())
-			app.UseMiddleware(middleware.NewCORS())
+			app.SetJsonSerializer(extension.CamelJson())
+			app.UseMiddleware(middlewares.NewCORS())
+			app.UseStaticAssets()
+			app.UseMiddlewareFront(middleware.NewAuthMiddleware())
 			app.UseEndpoints(registerEndpoints)
 			app.UseMvc(func(builder *mvc.ControllerBuilder) {
-				builder.AddViewsByConfig()
+				builder.AddViewsByConfig() //视图
+				builder.EnableRouteAttributes()
 				builder.AddController(controller.NewUserController)
 			})
 		}).
 		ConfigureServices(func(sc *dependencyinjection.ServiceCollection) {
 			// Register services
-			sc.AddTransientByImplements(service.NewUserService, new(service.IUserService))
-			sc.AddTransientByImplements(service.NewUserRepository, new(service.IUserRepository))
-
+			sc.AddSingletonByImplementsAndName("IUserService", service.NewUserService, new(service.IUserService))
+			sc.AddSingletonByImplementsAndName("IUserRepository", service.NewUserRepository, new(repository.IUserRepository))
 			// Enable service discovery (Nacos/Eureka/Consul)
+			sc.AddSingleton(service.NewDbService)
+			sc.AddSingleton(service.NewCacheService)
 			nacos.UseServiceDiscovery(sc)
 		}).
 		OnApplicationLifeEvent(func(life *abstractions.ApplicationLife) {
@@ -69,6 +81,7 @@ func registerEndpoints(rb router.IRouterBuilder) {
 	endpoints.UsePprof(rb)
 	endpoints.UseReadiness(rb)
 	endpoints.UseLiveness(rb)
+	endpoints.UseRouteInfo(rb)
 
 	// JWT endpoint
 	endpoints.UseJwt(rb)
@@ -78,108 +91,59 @@ func registerEndpoints(rb router.IRouterBuilder) {
 const UserController_Tel = `package controller
 
 import (
+	"github.com/liangboceo/yuanboot/web/actionresult"
 	"github.com/liangboceo/yuanboot/web/context"
 	"github.com/liangboceo/yuanboot/web/mvc"
 	"{{.ModelName}}/internal/service"
 )
 
 type UserController struct {
-	mvc.ApiController
-	userService service.IUserService
-}
+	mvc.ApiController ` + " `doc:\"用户管理\"`\n" +
+	"userService service.IUserService" +
+	`}
 
 func NewUserController(userService service.IUserService) *UserController {
 	return &UserController{
-		ApiController: *mvc.NewApiController(),
-		userService:   userService,
+		userService: userService,
 	}
 }
+`
+const CacheService_Tel = `package service
+import (
+	"github.com/liangboceo/yuanboot/abstractions/xlog"
+	"github.com/liangboceo/yuanboot/pkg/cache/redis"
+	redisdb "github.com/liangboceo/yuanboot/pkg/datasources/redis"
+)
 
-// GetUserRequest request object
-type GetUserRequest struct {
-	` + "`mvc.RequestGET route:\"/api/users/:id\"`" + `
-	Id int64 ` + "`param:\"id\"`" + `
+type CacheService struct {
+	redisClient redis.IClient
+	Log         xlog.ILogger
 }
 
-// CreateUserRequest request object
-type CreateUserRequest struct {
-	` + "`mvc.RequestBody route:\"/api/users\" doc:\"Create User\"`" + `
-	UserName string ` + "`json:\"username\" doc:\"Username\"`" + `
-	Password string ` + "`json:\"password\" doc:\"Password\"`" + `
-	Email    string ` + "`json:\"email\" doc:\"Email\"`" + `
-	Phone    string ` + "`json:\"phone\" doc:\"Phone\"`" + `
+func NewCacheService(redisDataSource *redisdb.RedisDataSource) *CacheService {
+	conn, _, _ := redisDataSource.Open()
+	client := conn.(redis.IClient)
+	log := xlog.GetXLogger("CacheService")
+	return &CacheService{redisClient: client, Log: log}
+}
+`
+
+const DbsService_Tel = `package service
+import (
+	"github.com/liangboceo/yuanboot/abstractions/xlog"
+	"github.com/liangboceo/yuanboot/pkg/datasources/mysql"
+	"gorm.io/gorm"
+)
+
+type DbService struct {
+	Db    *gorm.DB
+	Log   xlog.ILogger
+	Cache *CacheService
 }
 
-// UpdateUserRequest request object
-type UpdateUserRequest struct {
-	` + "`mvc.RequestPUT route:\"/api/users/:id\"`" + `
-	Id       int64  ` + "`param:\"id\"`" + `
-	UserName string ` + "`json:\"username\" doc:\"Username\"`" + `
-	Email    string ` + "`json:\"email\" doc:\"Email\"`" + `
-	Phone    string ` + "`json:\"phone\" doc:\"Phone\"`" + `
-}
-
-// LoginRequest request object
-type LoginRequest struct {
-	` + "`mvc.RequestPOST route:\"/api/users/login\" doc:\"User Login\"`" + `
-	UserName string ` + "`json:\"username\" doc:\"Username\"`" + `
-	Password string ` + "`json:\"password\" doc:\"Password\"`" + `
-}
-
-// GetUser gets user by ID
-func (c *UserController) GetUser(ctx *context.HttpContext, req *GetUserRequest) mvc.ApiResult {
-	user, err := c.userService.GetById(req.Id)
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.OK(user)
-}
-
-// CreateUser creates a new user
-func (c *UserController) CreateUser(req *CreateUserRequest) mvc.ApiResult {
-	user, err := c.userService.Create(req)
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.Created(user)
-}
-
-// UpdateUser updates user info
-func (c *UserController) UpdateUser(req *UpdateUserRequest) mvc.ApiResult {
-	user, err := c.userService.Update(req)
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.OK(user)
-}
-
-// DeleteUser deletes a user
-func (c *UserController) DeleteUser(ctx *context.HttpContext, req *GetUserRequest) mvc.ApiResult {
-	err := c.userService.Delete(req.Id)
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.OK(nil)
-}
-
-// ListUsers lists all users
-func (c *UserController) ListUsers(ctx *context.HttpContext) mvc.ApiResult {
-	users, err := c.userService.ListAll()
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.OK(users)
-}
-
-// Login user login
-func (c *UserController) Login(req *LoginRequest) mvc.ApiResult {
-	token, err := c.userService.Login(req.UserName, req.Password)
-	if err != nil {
-		return c.Error(err)
-	}
-	return c.OK(map[string]interface{}{
-		"token": token,
-	})
+func NewDbService(source *mysql.MySqlDataSource, cache *CacheService) *DbService {
+	db := mysql.NewGormDb(source)
+	return &DbService{Db: db, Log: xlog.GetXLogger("DbService"), Cache: cache}
 }
 `
 
@@ -187,9 +151,9 @@ const UserService_Tel = `package service
 
 import (
 	"errors"
+	"github.com/liangboceo/yuanboot/utils/jwt"
 	"{{.ModelName}}/internal/model"
 	"{{.ModelName}}/internal/repository"
-	"github.com/liangboceo/yuanboot/utils/jwt"
 	"time"
 )
 
@@ -285,16 +249,7 @@ func (s *UserService) Login(username, password string) (string, error) {
 	}
 
 	// Generate JWT Token
-	claims := jwt.MapClaims{
-		"user_id":  user.Id,
-		"username": user.UserName,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
-	}
-
-	token, err := jwt.NewToken(claims, "your-secret-key").SignedString()
-	if err != nil {
-		return "", err
-	}
+	token, _ := jwt.CreateToken([]byte("your-secret-key"), user.UserName, uint(user.Id), time.Now().Add(24*time.Hour).Unix())
 
 	return token, nil
 }
@@ -316,7 +271,9 @@ func NewUserRepository() IUserRepository {
 }
 
 // UserRepository user repository implementation
-type UserRepository struct{}
+type UserRepository struct {
+	IUserRepository
+}
 
 func (r *UserRepository) FindById(id int64) (*model.User, error) {
 	// TODO: Implement database query
@@ -411,57 +368,118 @@ func (u *User) ToDTO() *UserDTO {
 const Middleware_Tel = `package middleware
 
 import (
+	"encoding/base64"
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/liangboceo/yuanboot/abstractions"
+	"github.com/liangboceo/yuanboot/abstractions/xlog"
+	"github.com/liangboceo/yuanboot/utils"
+	"github.com/liangboceo/yuanboot/utils/jwt"
 	"github.com/liangboceo/yuanboot/web/context"
 	"github.com/liangboceo/yuanboot/web/middlewares"
 )
 
-// NewRecovery creates recovery middleware
-func NewRecovery() func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return middlewares.NewRecovery()
+type AuthMiddleware struct {
+	*middlewares.BaseMiddleware
+	Log       xlog.ILogger
+	SecretKey string
+	appId     string
+	SkipPath  []interface{}
 }
 
-// NewLogger creates logger middleware
-func NewLogger() func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return middlewares.NewLogger()
+func NewAuthMiddleware() *AuthMiddleware {
+	return &AuthMiddleware{BaseMiddleware: &middlewares.BaseMiddleware{},
+		Log: xlog.GetXLogger("AuthMiddleware")}
 }
 
-// NewCORS creates CORS middleware
-func NewCORS() func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return middlewares.NewCORS()
-}
+func (middleware *AuthMiddleware) SetConfiguration(config abstractions.IConfiguration) {
+	var hasSecretKey, hasAppId bool
+	if config != nil {
+		middleware.SecretKey, hasSecretKey = config.Get("yuanboot.application.server.uas.auth.jwt-secret").(string)
+		middleware.SkipPath, _ = config.Get("yuanboot.application.server.uas.auth.anon-urls").([]interface{})
+		middleware.appId, hasAppId = config.Get("yuanboot.application.server.app.appId").(string)
+	}
 
-// NewRequestTracker creates request tracker middleware
-func NewRequestTracker() func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return middlewares.NewRequestTracker()
-}
-
-// NewJWT creates JWT auth middleware
-func NewJWT(secret string) func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-		return func(ctx *context.HttpContext) {
-			token := ctx.Header("Authorization")
-			if token == "" {
-				ctx.JSON(401, context.H{"error": "unauthorized"})
-				return
-			}
-			// JWT validation logic
-			next(ctx)
-		}
+	if !hasSecretKey {
+		middleware.SecretKey = "5Zk2Qx8LpW7rT3eY9uB1vF4sH6dG2jK8mN3bV7cX1zA9sD4fG7hJ2kL5pR8tY3"
+	}
+	if !hasAppId {
+		middleware.Log.Errorf("appId is required")
 	}
 }
 
-// CustomMiddleware custom middleware example
-func CustomMiddleware(param string) func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-	return func(next func(ctx *context.HttpContext)) func(ctx *context.HttpContext) {
-		return func(ctx *context.HttpContext) {
-			// Pre-processing
-			ctx.SetItem("custom_param", param)
-
-			// Call next handler
-			next(ctx)
-
-			// Post-processing
+func (middleware *AuthMiddleware) Inovke(ctx *context.HttpContext, next func(ctx *context.HttpContext)) {
+	defer func() {
+		if err := recover(); err != nil {
+			middleware.Log.Errorf("panic: %v", err)
+			middleware.sendUnauthorizedResponse(ctx, "认证失败")
 		}
+	}()
+	middleware.Log.Debug("AuthMiddleware Invoke")
+	// 1、原有逻辑：如果JWT未启用或路径在跳过列表中，则跳过验证
+	if utils.LikeContains(ctx.Input.Path(), middleware.SkipPath) {
+		next(ctx)
+		return
+	}
+	// 2. 跨域预检请求 OPTIONS 直接放行
+	if ctx.Input.Request.Method == http.MethodOptions {
+		next(ctx)
+	}
+	// 3. 获取 Authorization Header
+	authHeader := ctx.Input.Request.Header.Get("Authorization")
+	if authHeader == "" {
+		middleware.Log.Debug("无token，请重新登录")
+		middleware.sendUnauthorizedResponse(ctx, "无token，请重新登录")
+		return
+	}
+
+	// 4. 验证 Bearer 前缀
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		middleware.Log.Debug("未提供有效的token令牌")
+		middleware.sendUnauthorizedResponse(ctx, "未提供有效的token令牌")
+		return
+	}
+
+	// 5. 提取 Token 并验证
+	token := parts[1]
+	// 解析 Token
+	keyBytes, _ := base64.StdEncoding.DecodeString(middleware.appId + middleware.SecretKey)
+	info, err := jwt.ParseToken(token, keyBytes)
+	if err != nil {
+		middleware.Log.Errorf("token验证失败: %v", err)
+		middleware.sendUnauthorizedResponse(ctx, "认证失败")
+		return
+	}
+	mapClaims := info.(jwt.MapClaims)
+	userInfo := make(map[string]interface{})
+	for k, v := range mapClaims {
+		userInfo[k] = v
+	}
+	ctx.SetItem("userinfo", userInfo)
+	next(ctx)
+}
+
+// sendUnauthorizedResponse 统一返回 401 未授权 JSON 响应
+func (middleware *AuthMiddleware) sendUnauthorizedResponse(ctx *context.HttpContext, message string) {
+	// 记录调试日志
+	middleware.Log.Debug(message)
+
+	// 设置 401 状态码
+	ctx.Output.SetStatusCode(http.StatusUnauthorized)
+
+	// 设置响应头为 JSON 格式
+	ctx.Output.Response.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	// 构造 JSON 响应体
+	resp := fmt.Sprintf({"code":401, "msg":"%s"}, message)
+
+	// 写入响应体
+	_, err := ctx.Output.Response.Write([]byte(resp))
+	if err != nil {
+		middleware.Log.Error("写入响应失败", err)
 	}
 }
 `
@@ -478,6 +496,14 @@ const ConfigDev_Tel = `yuanboot:
       session:
         name: "SESSION_ID"
         timeout: 3600
+      mvc:
+        template: "{controller}/{action}"
+        views:
+          path: "./static/templates"
+          includes: [ "","" ]
+      static:
+        patten: "/"
+        webroot: "./static"
       jwt:
         header: "Authorization"
         secret: "your-dev-secret-key-change-in-production"
@@ -522,13 +548,13 @@ const ConfigDev_Tel = `yuanboot:
         password: ""
         db: 0
         pool_size: 10
-  servicediscovery:
-    nacos:
-      enabled: true
-      server_addr: localhost:8848
-      namespace: public
-      group: DEFAULT_GROUP
-      weight: 100
+  cloud:
+    discovery:
+      type: "nacos"
+      metadata:
+        url: "nacos-fat.spicrhdk.com"
+        port: 8848
+        namespace: "eadc9ad4-9cfc-454d-bb3c-766b99899448"
 `
 
 const ConfigProd_Tel = `yuanboot:
@@ -543,6 +569,14 @@ const ConfigProd_Tel = `yuanboot:
       session:
         name: "SESSION_ID"
         timeout: 3600
+      mvc:
+        template: "{controller}/{action}"
+        views:
+          path: "./static/templates"
+          includes: [ "","" ]
+      static:
+        patten: "/"
+        webroot: "./static"
       jwt:
         header: "Authorization"
         secret: "${JWT_SECRET}"
@@ -583,13 +617,13 @@ const ConfigProd_Tel = `yuanboot:
         password: ${REDIS_PASSWORD}
         db: 0
         pool_size: 20
-  servicediscovery:
-    nacos:
-      enabled: true
-      server_addr: ${NACOS_HOST}:${NACOS_PORT}
-      namespace: ${NACOS_NAMESPACE}
-      group: ${NACOS_GROUP}
-      weight: 100
+  cloud:
+    discovery:
+      type: "nacos"
+      metadata:
+        url: "nacos-fat.spicrhdk.com"
+        port: 8848
+        namespace: "eadc9ad4-9cfc-454d-bb3c-766b99899448"
   mq:
     kafka:
       brokers:
@@ -598,6 +632,15 @@ const ConfigProd_Tel = `yuanboot:
       group_id: {{.ModelName}}-group
 `
 
+const Log_Tel = `yuanboot:
+    log:
+      log_level: info
+      app_name: {{.ModelName}}
+      log_path: /mnt/data/log/platform/
+      log_type: zap
+      print_stack: true
+
+`
 const Mod_Tel = `
 module {{.ModelName}}
 
@@ -814,4 +857,26 @@ For detailed configuration, please refer to [Yuanboot Documentation](https://yua
 ## License
 
 MIT License
+`
+
+const Gitignore_tpl = ` 
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.idea
+*.test
+.idea
+{{.ModelName}}
+static
+
+*.git
+*.log
+go.sum
+
+/fatal
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 `
