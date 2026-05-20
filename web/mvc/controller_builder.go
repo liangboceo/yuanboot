@@ -5,7 +5,6 @@ import (
 	"github.com/liangboceo/yuanboot/abstractions"
 	"github.com/liangboceo/yuanboot/abstractions/xlog"
 	"github.com/liangboceo/yuanboot/web/view"
-	"github.com/nacos-group/nacos-sdk-go/common/logger"
 	"reflect"
 	"strings"
 )
@@ -91,6 +90,7 @@ func (builder *ControllerBuilder) AddController(controllerCtor interface{}) {
 
 func addAttributeRoute(builder *ControllerBuilder, controllerName string, controllerType reflect.Type, descriptor ControllerDescriptor) {
 	// add routes for action attributes
+	logger := xlog.GetXLogger("ControllerBuilder")
 	controllerAttr := controllerType.Field(0).Tag.Get("route")
 	if controllerAttr != "" {
 		for _, desc := range descriptor.GetActionDescriptors() {
