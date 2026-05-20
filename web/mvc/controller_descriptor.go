@@ -3,9 +3,9 @@ package mvc
 import (
 	"errors"
 	"github.com/liangboceo/reflectx"
+	"github.com/liangboceo/yuanboot/abstractions/xlog"
 	"github.com/liangboceo/yuanboot/utils"
 	"github.com/liangboceo/yuanboot/web/context"
-	"github.com/nacos-group/nacos-sdk-go/common/logger"
 	"reflect"
 	"strings"
 )
@@ -60,6 +60,7 @@ func NewControllerDescriptor(name string, controllerType reflect.Type, controlle
 }
 
 func addAttributeRouteActionDescriptor(controllerName string, desc ActionDescriptor) (*RouteAttribute, error) {
+	logger := xlog.GetXLogger("ControllerBuilder")
 	for _, parameter := range desc.MethodInfo.Parameters {
 		paramType := parameter.ParameterType
 		if paramType.Kind() == reflect.Ptr {
