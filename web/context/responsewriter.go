@@ -54,7 +54,7 @@ func (rw *CResponseWriter) SetStatus(code int) {
 func (rw *CResponseWriter) WriteHeader(s int) {
 	rw.status = s
 	rw.callBefore()
-	if !rw.Written() {
+	if rw.Written() {
 		return
 	}
 	rw.ResponseWriter.WriteHeader(s)
