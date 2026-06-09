@@ -49,6 +49,9 @@ func NewStandaloneOps(options *Options, serializer ISerializer) *GoRedisStandalo
 	if options.PoolTimeout == 0 {
 		options.PoolTimeout = 4 * time.Second
 	}
+	if options.ConnMaxIdleTime == 0 {
+		options.ConnMaxIdleTime = 1 * time.Minute
+	}
 
 	client := redis.NewClient(&redis.Options{
 		Addr:            options.Addr,
@@ -63,6 +66,7 @@ func NewStandaloneOps(options *Options, serializer ISerializer) *GoRedisStandalo
 		ReadTimeout:     options.ReadTimeout,
 		WriteTimeout:    options.WriteTimeout,
 		PoolTimeout:     options.PoolTimeout,
+		ConnMaxIdleTime: options.ConnMaxIdleTime,
 	})
 	return &GoRedisStandaloneOps{client: client, valueSerializer: serializer}
 }

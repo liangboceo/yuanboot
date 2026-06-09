@@ -45,6 +45,9 @@ func NewClusterOps(options *Options, serializer ISerializer) *GoRedisClusterOps 
 	if options.PoolTimeout == 0 {
 		options.PoolTimeout = 4 * time.Second
 	}
+	if options.ConnMaxIdleTime == 0 {
+		options.ConnMaxIdleTime = 1 * time.Minute
+	}
 
 	client := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:           options.Addrs,
@@ -58,6 +61,7 @@ func NewClusterOps(options *Options, serializer ISerializer) *GoRedisClusterOps 
 		ReadTimeout:     options.ReadTimeout,
 		WriteTimeout:    options.WriteTimeout,
 		PoolTimeout:     options.PoolTimeout,
+		ConnMaxIdleTime: options.ConnMaxIdleTime,
 	})
 	return &GoRedisClusterOps{
 		GoRedisStandaloneOps: GoRedisStandaloneOps{

@@ -17,4 +17,5 @@ type Options struct {
 	ReadTimeout     time.Duration // 读取超时，默认 3s
 	WriteTimeout    time.Duration // 写入超时，默认 3s
 	PoolTimeout     time.Duration // 连接池超时，默认 4s
+	ConnMaxIdleTime time.Duration // 连接间隔时间，默认 1m
 }

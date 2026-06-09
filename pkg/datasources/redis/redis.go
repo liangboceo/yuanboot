@@ -20,15 +20,16 @@ type redisConfig struct {
 	DB       int                         `mapstructure:"db" config:"db"`
 	Pool     *datasources.DataSourcePool `mapstructure:"pool" config:"pool"`
 	// v9 连接池配置
-	PoolSize        int `mapstructure:"pool_size" config:"pool_size"`                 // 连接池大小，默认 10
-	MinIdleConns    int `mapstructure:"min_idle_conns" config:"min_idle_conns"`       // 最小空闲连接数，默认 2
-	MaxRetries      int `mapstructure:"max_retries" config:"max_retries"`             // 最大重试次数，默认 3
-	DialTimeout     int `mapstructure:"dial_timeout" config:"dial_timeout"`           // 连接超时（秒），默认 5s
-	ReadTimeout     int `mapstructure:"read_timeout" config:"read_timeout"`           // 读取超时（秒），默认 3s
-	WriteTimeout    int `mapstructure:"write_timeout" config:"write_timeout"`         // 写入超时（秒），默认 3s
-	PoolTimeout     int `mapstructure:"pool_timeout" config:"pool_timeout"`           // 连接池超时（秒），默认 4s
-	MinRetryBackoff int `mapstructure:"min_retry_backoff" config:"min_retry_backoff"` // 最小重试间隔（毫秒），默认 8ms
-	MaxRetryBackoff int `mapstructure:"max_retry_backoff" config:"max_retry_backoff"` // 最大重试间隔（毫秒），默认 512ms
+	PoolSize        int `mapstructure:"pool_size" config:"pool_size"`                   // 连接池大小，默认 10
+	MinIdleConns    int `mapstructure:"min_idle_conns" config:"min_idle_conns"`         // 最小空闲连接数，默认 2
+	MaxRetries      int `mapstructure:"max_retries" config:"max_retries"`               // 最大重试次数，默认 3
+	DialTimeout     int `mapstructure:"dial_timeout" config:"dial_timeout"`             // 连接超时（秒），默认 5s
+	ReadTimeout     int `mapstructure:"read_timeout" config:"read_timeout"`             // 读取超时（秒），默认 3s
+	WriteTimeout    int `mapstructure:"write_timeout" config:"write_timeout"`           // 写入超时（秒），默认 3s
+	PoolTimeout     int `mapstructure:"pool_timeout" config:"pool_timeout"`             // 连接池超时（秒），默认 4s
+	MinRetryBackoff int `mapstructure:"min_retry_backoff" config:"min_retry_backoff"`   // 最小重试间隔（毫秒），默认 8ms
+	MaxRetryBackoff int `mapstructure:"max_retry_backoff" config:"max_retry_backoff"`   // 最大重试间隔（毫秒），默认 512ms
+	ConnMaxIdleTime int `mapstructure:"conn_max_idle_time" config:"conn_max_idle_time"` // 连接最大间隔时间，默认1minute
 }
 
 // DataSourcePool 数据源连接池配置
@@ -174,6 +175,9 @@ func createReidsPool(redisdatasourcesConfig redisConfig, log xlog.ILogger) pool.
 		}
 		if redisdatasourcesConfig.MaxRetryBackoff > 0 {
 			options.MaxRetryBackoff = time.Duration(redisdatasourcesConfig.MaxRetryBackoff) * time.Millisecond
+		}
+		if redisdatasourcesConfig.ConnMaxIdleTime > 0 {
+			options.ConnMaxIdleTime = time.Duration(redisdatasourcesConfig.ConnMaxIdleTime) * time.Minute
 		}
 		return redis.NewClient(options), nil
 	}
