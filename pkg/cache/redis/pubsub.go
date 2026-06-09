@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
 	"time"
 )
 
@@ -52,27 +51,19 @@ func (ps PubSub) ReceiveMessageTimeout(channel string, timeout time.Duration) (*
 	defer cancel()
 
 	// Receive with timeout
-	psSub := sub.pubsub
-	if psSub == nil {
+	if sub.pubsub == nil {
 		return nil, nil
 	}
 
-	// Type assertion and receive
-	if receiveMsg, ok := psSub.(interface {
-		ReceiveMessage(context.Context) (*redis.Message, error)
-	}); ok {
-		msg, err := receiveMsg.ReceiveMessage(timeoutCtx)
-		if err != nil {
-			return nil, err
-		}
-		return &Message{
-			Channel: msg.Channel,
-			Pattern: msg.Pattern,
-			Payload: msg.Payload,
-		}, nil
+	msg, err := sub.pubsub.ReceiveMessage(timeoutCtx)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil, nil
+	return &Message{
+		Channel: msg.Channel,
+		Pattern: msg.Pattern,
+		Payload: msg.Payload,
+	}, nil
 }
 
 // ReceiveMessages continuously receives messages from a channel
@@ -88,20 +79,16 @@ func (ps PubSub) ReceiveMessages(channel string, messageChan chan<- *Message) (*
 			_ = sub.Close()
 		}(sub)
 
-		psSub := sub.pubsub
-		if psSub == nil {
+		if sub.pubsub == nil {
 			return
 		}
 
-		// Get channel
-		if ch, ok := psSub.(interface{ Channel() <-chan *redis.Message }); ok {
-			redisChan := ch.Channel()
-			for msg := range redisChan {
-				messageChan <- &Message{
-					Channel: msg.Channel,
-					Pattern: msg.Pattern,
-					Payload: msg.Payload,
-				}
+		redisChan := sub.pubsub.Channel()
+		for msg := range redisChan {
+			messageChan <- &Message{
+				Channel: msg.Channel,
+				Pattern: msg.Pattern,
+				Payload: msg.Payload,
 			}
 		}
 	}()
@@ -122,20 +109,16 @@ func (ps PubSub) ReceiveMessagesWithPattern(pattern string, messageChan chan<- *
 			_ = sub.Close()
 		}(sub)
 
-		psSub := sub.pubsub
-		if psSub == nil {
+		if sub.pubsub == nil {
 			return
 		}
 
-		// Get channel
-		if ch, ok := psSub.(interface{ Channel() <-chan *redis.Message }); ok {
-			redisChan := ch.Channel()
-			for msg := range redisChan {
-				messageChan <- &Message{
-					Channel: msg.Channel,
-					Pattern: msg.Pattern,
-					Payload: msg.Payload,
-				}
+		redisChan := sub.pubsub.Channel()
+		for msg := range redisChan {
+			messageChan <- &Message{
+				Channel: msg.Channel,
+				Pattern: msg.Pattern,
+				Payload: msg.Payload,
 			}
 		}
 	}()
@@ -155,21 +138,17 @@ func (ps PubSub) SubscribeWithCallback(callback func(*Message), channels ...stri
 			_ = sub.Close()
 		}(sub)
 
-		psSub := sub.pubsub
-		if psSub == nil {
+		if sub.pubsub == nil {
 			return
 		}
 
-		// Get channel
-		if ch, ok := psSub.(interface{ Channel() <-chan *redis.Message }); ok {
-			redisChan := ch.Channel()
-			for msg := range redisChan {
-				callback(&Message{
-					Channel: msg.Channel,
-					Pattern: msg.Pattern,
-					Payload: msg.Payload,
-				})
-			}
+		redisChan := sub.pubsub.Channel()
+		for msg := range redisChan {
+			callback(&Message{
+				Channel: msg.Channel,
+				Pattern: msg.Pattern,
+				Payload: msg.Payload,
+			})
 		}
 	}()
 
@@ -188,21 +167,17 @@ func (ps PubSub) PSubscribeWithCallback(callback func(*Message), patterns ...str
 			_ = sub.Close()
 		}(sub)
 
-		psSub := sub.pubsub
-		if psSub == nil {
+		if sub.pubsub == nil {
 			return
 		}
 
-		// Get channel
-		if ch, ok := psSub.(interface{ Channel() <-chan *redis.Message }); ok {
-			redisChan := ch.Channel()
-			for msg := range redisChan {
-				callback(&Message{
-					Channel: msg.Channel,
-					Pattern: msg.Pattern,
-					Payload: msg.Payload,
-				})
-			}
+		redisChan := sub.pubsub.Channel()
+		for msg := range redisChan {
+			callback(&Message{
+				Channel: msg.Channel,
+				Pattern: msg.Pattern,
+				Payload: msg.Payload,
+			})
 		}
 	}()
 
