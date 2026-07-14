@@ -10,6 +10,7 @@ var Project = projects.NewEmptyProject("webapi", "Web API Application").With(fun
 	root.AddFileWithContent("main.go", Main_tel)
 	root.AddFileWithContent("go.mod", Mod_tel)
 	root.AddDir("spec").AddFileWithContent("yuanboot.md", spec.YuanbootSpec)
+	root.AddDir("spec").AddFileWithContent("backend-module-development.md", spec.BackendModuleDevelopment)
 	root.AddFileWithContent("README.md", spec.ReadMe)
 	root.AddDir("version").AddFileWithContent("version.go", docker.Version_Tel)
 	root.AddFileWithContent("Dockerfile", docker.DockerFile_Tel)

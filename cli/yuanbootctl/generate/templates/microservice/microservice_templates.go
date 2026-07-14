@@ -474,7 +474,7 @@ func (middleware *AuthMiddleware) sendUnauthorizedResponse(ctx *context.HttpCont
 	ctx.Output.Response.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	// 构造 JSON 响应体
-	resp := fmt.Sprintf({"code":401, "msg":"%s"}, message)
+	resp := fmt.Sprintf(` + "`" + `{"code":401,"msg":"%s"}` + "`" + `, message)
 
 	// 写入响应体
 	_, err := ctx.Output.Response.Write([]byte(resp))

@@ -7,3 +7,6 @@ var YuanbootSpec string
 
 //go:embed README.md
 var ReadMe string
+
+//go:embed spec/backend-module-development.md
+var BackendModuleDevelopment string

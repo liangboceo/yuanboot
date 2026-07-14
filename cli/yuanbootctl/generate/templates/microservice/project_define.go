@@ -23,6 +23,7 @@ var Project = projects.NewEmptyProject("microservice", "Complete Microservice Ap
 	root.AddFileWithContent("Makefile", Makefile_Tel)
 	root.AddFileWithContent("README.md", Readme_Tel)
 	root.AddDir("spec").AddFileWithContent("yuanboot.md", spec.YuanbootSpec)
+	root.AddDir("spec").AddFileWithContent("backend-module-development.md", spec.BackendModuleDevelopment)
 	root.AddFileWithContent("README.md", spec.ReadMe)
 	root.AddDir("version").AddFileWithContent("version.go", docker.Version_Tel)
 	root.AddFileWithContent("Dockerfile", docker.DockerFile_Tel)

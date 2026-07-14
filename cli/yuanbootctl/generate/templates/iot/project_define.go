@@ -17,6 +17,7 @@ var Project = projects.NewEmptyProject("iot", "Iot Application").With(func(root 
 	root.AddFileWithContent("go.mod", Mod_Tel)
 	root.AddFileWithContent("main.go", Main_Tel)
 	root.AddDir("spec").AddFileWithContent("yuanboot.md", spec.YuanbootSpec)
+	root.AddDir("spec").AddFileWithContent("backend-module-development.md", spec.BackendModuleDevelopment)
 	root.AddFileWithContent("README.md", spec.ReadMe)
 	root.AddDir("version").AddFileWithContent("version.go", docker.Version_Tel)
 	root.AddFileWithContent("Dockerfile", docker.DockerFile_Tel)

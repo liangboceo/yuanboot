@@ -13,6 +13,7 @@ var Project = projects.NewEmptyProject("simpleweb", "Simple Web Application").Wi
 	root.AddDir("static").AddDir("templates").AddFileWithContent("index.html", IndexHtml_Tel)
 	root.AddFileWithContent("README.md", Readme_Tel)
 	root.AddDir("spec").AddFileWithContent("yuanboot.md", spec.YuanbootSpec)
+	root.AddDir("spec").AddFileWithContent("backend-module-development.md", spec.BackendModuleDevelopment)
 	root.AddFileWithContent("README.md", spec.ReadMe)
 	root.AddDir("version").AddFileWithContent("version.go", docker.Version_Tel)
 	root.AddFileWithContent("Dockerfile", docker.DockerFile_Tel)
