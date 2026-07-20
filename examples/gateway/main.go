@@ -61,7 +61,10 @@ func registerGatewayRoutes(rb router.IRouterBuilder) {
 // GetServices 获取已注册的服务列表
 func GetServices(ctx *context.HttpContext) {
 	var gatewayHandler *GatewayHandler
-	ctx.RequiredServices.GetService(&gatewayHandler)
+	err := ctx.RequiredServices.GetService(&gatewayHandler)
+	if err != nil {
+		return
+	}
 
 	services := gatewayHandler.GetRegisteredServices()
 	ctx.JSON(200, map[string]interface{}{
@@ -73,7 +76,10 @@ func GetServices(ctx *context.HttpContext) {
 // GetRoutes 获取路由配置
 func GetRoutes(ctx *context.HttpContext) {
 	var gatewayHandler *GatewayHandler
-	ctx.RequiredServices.GetService(&gatewayHandler)
+	err := ctx.RequiredServices.GetService(&gatewayHandler)
+	if err != nil {
+		return
+	}
 
 	ctx.JSON(200, map[string]interface{}{
 		"routes": gatewayHandler.GetRoutes(),
@@ -84,7 +90,10 @@ func GetRoutes(ctx *context.HttpContext) {
 // RefreshCache 刷新缓存
 func RefreshCache(ctx *context.HttpContext) {
 	var gatewayHandler *GatewayHandler
-	ctx.RequiredServices.GetService(&gatewayHandler)
+	err := ctx.RequiredServices.GetService(&gatewayHandler)
+	if err != nil {
+		return
+	}
 
 	gatewayHandler.ForceRefresh()
 	ctx.JSON(200, map[string]interface{}{
@@ -95,7 +104,10 @@ func RefreshCache(ctx *context.HttpContext) {
 // GetServiceInstances 获取服务实例
 func GetServiceInstances(ctx *context.HttpContext) {
 	var gatewayHandler *GatewayHandler
-	ctx.RequiredServices.GetService(&gatewayHandler)
+	err := ctx.RequiredServices.GetService(&gatewayHandler)
+	if err != nil {
+		return
+	}
 
 	serviceName := ctx.Input.Param("name")
 	instances := gatewayHandler.GetServiceInstances(serviceName)
@@ -109,7 +121,10 @@ func GetServiceInstances(ctx *context.HttpContext) {
 // ProxyRequest 代理请求处理器
 func ProxyRequest(ctx *context.HttpContext) {
 	var gatewayHandler *GatewayHandler
-	ctx.RequiredServices.GetService(&gatewayHandler)
+	err := ctx.RequiredServices.GetService(&gatewayHandler)
+	if err != nil {
+		return
+	}
 
 	// 获取完整的转发路径
 	path := "/" + ctx.Input.Param("path")
