@@ -45,7 +45,6 @@ export default async ({ mode }: ConfigEnv): Promise<UserConfigExport> => {
       warmup: {
         clientFiles: [
           "./index.html",
-          "./user.html",
           "./src/{views,components,user}/*"
         ]
       }
