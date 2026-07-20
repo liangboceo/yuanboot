@@ -63,7 +63,8 @@ func normalizeContent(content string) string {
 	content = strings.ReplaceAll(content, "{{", "{{\"{{\"}}")
 	content = strings.ReplaceAll(content, "sendex-agent-web", "{{.ModelName}}-web")
 	content = strings.ReplaceAll(content, "sendex", "{{.ModelName}}")
+	content = strings.ReplaceAll(content, "sendex", "{{.ModelName}}")
 	content = strings.ReplaceAll(content, "SendEx", "{{.ModelName}}")
-	content = strings.ReplaceAll(content, "Sendex", "{{.ModelName}}")
+	content = strings.ReplaceAll(content, "vue-pure-admin", "{{.ModelName}}-web")
 	return content
 }
