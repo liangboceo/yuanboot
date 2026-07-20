@@ -61,12 +61,9 @@ func outputName(name string) string {
 
 func normalizeContent(content string) string {
 	content = strings.ReplaceAll(content, "{{", "{{\"{{\"}}")
-	content = strings.ReplaceAll(content, "tcp(mysql-server:3306)/sendex", "tcp(mysql-server:3306)/{{.ModelName}}")
-	content = strings.ReplaceAll(content, "sendex-server", "{{.ModelName}}-server")
-	content = strings.ReplaceAll(content, "pureExternalLink: Sendex", "pureExternalLink: {{.ModelName}}")
-	content = strings.ReplaceAll(content, "pureUtilsLink: Sendex Utils", "pureUtilsLink: {{.ModelName}} Utils")
-	content = strings.ReplaceAll(content, "pureUtilsLink: Sendex工具库", "pureUtilsLink: {{.ModelName}}工具库")
 	content = strings.ReplaceAll(content, "sendex-agent-web", "{{.ModelName}}-web")
+	content = strings.ReplaceAll(content, "sendex", "{{.ModelName}}")
 	content = strings.ReplaceAll(content, "SendEx", "{{.ModelName}}")
+	content = strings.ReplaceAll(content, "Sendex", "{{.ModelName}}")
 	return content
 }
