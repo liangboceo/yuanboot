@@ -43,26 +43,23 @@ func init() {
 }
 
 func createProject(template string) {
-	// 所有模板定义： template/init.go
-	// 模板目录 /template/console   定义： project_define.go
-	project := templates.GetProjectByName(template)
-
 	fmt.Println(consolecolors.Blue(string(projects.Logo)))
 	fmt.Println(" ")
 	fmt.Printf("%s   (version:  %s)", consolecolors.Green(":: yuanbootctl ::"), consolecolors.Blue(projects.Version))
 	fmt.Print(consolecolors.Blue(`
 This application is a tool to generate the needed files to quickly create a yuanboot application.
 `))
+	fmt.Println("create template project......")
+	time.Sleep(500 * time.Millisecond)
 
+	// 所有模板定义： template/init.go
+	// 模板目录 /template/console   定义： project_define.go
+	project := templates.GetProjectByName(template)
 	if project != nil {
-		fmt.Println("create template project......")
-		time.Sleep(500 * time.Millisecond)
-
 		project.Generate(dirPath, projectName)
-
 		fmt.Println("template project created.")
 	} else {
-		fmt.Printf("Not found tempalte project! , %s", template)
+		fmt.Printf("Not found template project! , %s", template)
 	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	//---------------------------------------------------------------------------------------------------------------------------------------------

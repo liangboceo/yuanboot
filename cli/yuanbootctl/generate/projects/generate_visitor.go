@@ -1,6 +1,7 @@
 package projects
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -30,7 +31,7 @@ func NewGenerator(projectName string, target string, vars map[string]string) *Ge
 }
 
 func (g *Generator) VisitFile(parent *ProjectItem, item *ProjectItem) {
-	filepath := path.Join(g.TargetDir, item.Path)
+	filepath := path.Join(g.TargetDir, g.renderPath(item.Path))
 	file, err := os.Create(filepath)
 	if err != nil {
 		fmt.Println(err)
@@ -51,10 +52,22 @@ func (g *Generator) VisitFile(parent *ProjectItem, item *ProjectItem) {
 }
 
 func (g *Generator) VisitDir(parent *ProjectItem, item *ProjectItem) {
-	dirPath := path.Join(g.TargetDir, item.Path)
+	dirPath := path.Join(g.TargetDir, g.renderPath(item.Path))
 	err := os.MkdirAll(dirPath, fs.ModePerm)
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println("created dir: " + dirPath)
+}
+
+func (g *Generator) renderPath(value string) string {
+	tel, err := template.New("path").Parse(value)
+	if err != nil {
+		return value
+	}
+	var result bytes.Buffer
+	if err = tel.Execute(&result, g.vars); err != nil {
+		return value
+	}
+	return result.String()
 }

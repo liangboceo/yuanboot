@@ -1,0 +1,8 @@
+
+yuanboot:
+  log:
+    log_level: info
+    app_name: sendex-server
+    log_path: /mnt/data/log/platform/
+    log_type: zap
+    print_stack: false

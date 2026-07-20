@@ -1,0 +1,71 @@
+yuanboot:
+  application:
+    name: sendex-server
+    server:
+      type: "fasthttp"
+      address: ":8080"
+      path: "v1"
+      max_request_size: 209615700000
+      session:
+        name: "yuanboot_SESSIONID"
+        timeout: 3600
+      tls:
+        cert: ""
+        key: ""
+      mvc:
+        template: "{controller}/{action}"
+        views:
+          path: "./static/templates"
+          includes: [ "","" ]
+      static:
+        patten: "/"
+        webroot: "./static"
+      cors:
+        allow_origins: [ "*" ]
+        allow_methods: [ "POST","GET","PUT", "PATCH" ]
+        allow_credentials: true
+      uas:
+        auth:
+          jwt-secret: 5Zk2Qx8LpW7rT3eY9uB1vF4sH6dG2jK8mN3bV7cX1zA9sD4fG7hJ2kL5pR8tY3
+          anon-urls: [
+            "/",
+            "**.js",
+            "**.css",
+            "**.webp",
+            "**.ico",
+            "**.png",
+            "**.jpg",
+            "**.jpeg",
+            "**/resources/swagger",
+            "**/resources/swagger.json",
+            "favicon.ico",
+            "assets**",
+            "**/Login",
+            "**/Register",
+            "**/getBridgeRouter",
+            "**/profile",
+            "**/captcha",
+            "**/heap",
+            "/v1/api/**",
+            "**/GetSystemConfig",
+            "/swagger-ui.html**",
+          ]
+  storage:
+    path: /mnt/data/storage
+  datasource:
+    pool:
+      init_cap: 2
+      max_cap: 5
+      idle_timeout: 5
+    db:
+      name: db1
+      url: tcp(mysql-server:3306)/sendex?charset=utf8mb4&parseTime=True&loc=Local
+      username: dev
+      password: "123456"
+      debug: false
+    redis:
+      name: reids1
+      url: redis-server:6379
+      password: dev
+      db: 11
+env: ${MAVEN_HOME}

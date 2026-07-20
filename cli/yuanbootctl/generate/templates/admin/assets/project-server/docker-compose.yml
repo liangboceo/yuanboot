@@ -1,0 +1,15 @@
+
+version: '3'
+services:
+  sendex-server: # 服务名称 建议与容器名称一致
+    image: registry.cn-shanghai.aliyuncs.com/sendex-server:fat
+    container_name: sendex-server # 容器名称
+    environment:
+      - TZ=Asia/Shanghai # 设置容器时区 我这里通过下面挂载方式同步的宿主机时区和时间了,这里忽略
+      - YUANBOOT_PROFILE=fat
+    volumes:
+      - /etc/hosts:/etc/hosts:ro
+      - /mnt/data/log:/mnt/data/log
+      - /mnt/data/storage:/mnt/data/storage
+    network_mode: host
+    restart: always # 容器随docker启动自启

@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/templates/admin"
 	"github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/templates/console"
 	"github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/templates/grpc"
 	"github.com/liangboceo/yuanboot/cli/yuanbootctl/generate/templates/iot"
@@ -12,6 +13,7 @@ import (
 )
 
 func init() {
+	registerProject("admin", admin.Project)
 	registerProject("console", console.Project)
 	registerProject("webapi", webapi.Project)
 	registerProject("mvc", mvc.Project)
