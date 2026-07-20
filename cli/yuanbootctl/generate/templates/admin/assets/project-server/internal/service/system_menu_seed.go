@@ -26,7 +26,8 @@ func systemMenuSeeds() []systemMenuSeed {
 		menuPage(100, "用户管理", 1, 1, "user", "system/user/index", "ep:avatar"),
 		menuPage(101, "角色管理", 1, 2, "role", "system/role/index", "ri/admin-line"),
 		menuPage(102, "菜单管理", 1, 3, "menu", "system/menu/index", "ep:menu"),
-		menuPage(107, "系统配置", 1, 4, "system-config", "system/system-config/index", "ri/settings-2-line"),
+		menuPage(103, "部门管理", 1, 4, "dept", "system/dept/index", "ep:fold"),
+		menuPage(107, "系统配置", 1, 4, "system-config", "system/system-config/index", "ep:credit-card"),
 	}
 }
 
