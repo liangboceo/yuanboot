@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/fasthttp/websocket"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
@@ -89,4 +91,45 @@ func TestNewFastHTTPHandlerKeepsBufferedResponses(t *testing.T) {
 	require.Equal(t, http.StatusCreated, response.StatusCode)
 	require.True(t, strings.HasPrefix(response.Header.Get("Content-Type"), "application/json"))
 	require.JSONEq(t, `{"ok":true}`, string(body))
+}
+
+func TestNewFastHTTPHandlerSupportsWebSocketUpgrade(t *testing.T) {
+	upgrader := websocket.FastHTTPUpgrader{CheckOrigin: func(*fasthttp.RequestCtx) bool { return true }}
+	handler := NewFastHTTPHandler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		responseWriter := writer.(*NetHTTPResponseWriter)
+		err := upgrader.Upgrade(responseWriter.Ctx, func(connection *websocket.Conn) {
+			messageType, message, readErr := connection.ReadMessage()
+			if readErr == nil {
+				_ = connection.WriteMessage(messageType, message)
+			}
+			_ = connection.Close()
+		})
+		if err == nil {
+			responseWriter.MarkHijacked()
+		}
+	}))
+
+	listener := fasthttputil.NewInmemoryListener()
+	server := &fasthttp.Server{Handler: handler}
+	go func() { _ = server.Serve(listener) }()
+	t.Cleanup(func() {
+		_ = server.Shutdown()
+		_ = listener.Close()
+	})
+
+	dialer := websocket.Dialer{
+		NetDial: func(network, addr string) (net.Conn, error) {
+			return listener.Dial()
+		},
+		HandshakeTimeout: 3 * time.Second,
+	}
+	connection, response, err := dialer.Dial("ws://test/socket", nil)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusSwitchingProtocols, response.StatusCode)
+	defer connection.Close()
+	require.NoError(t, connection.WriteMessage(websocket.TextMessage, []byte("ping")))
+	messageType, message, err := connection.ReadMessage()
+	require.NoError(t, err)
+	require.Equal(t, websocket.TextMessage, messageType)
+	require.Equal(t, []byte("ping"), message)
 }

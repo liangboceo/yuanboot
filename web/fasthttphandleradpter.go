@@ -249,7 +249,6 @@ func (w *NetHTTPResponseWriter) Flush() {
 
 func (w *NetHTTPResponseWriter) MarkHijacked() {
 	w.hijackOnce.Do(func() {
-		w.Ctx.HijackSetNoResponse(true)
 		w.signalMode(responseModeHijacked)
 	})
 }
