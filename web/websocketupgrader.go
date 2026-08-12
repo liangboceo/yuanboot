@@ -46,10 +46,12 @@ func Upgrade(ctx *context.HttpContext, upgraderFunc func(*websocket.Conn)) {
 		err = e
 		upgraderFunc(conn)
 	} else { //fasthttp
-		responseWriter.IsHijackerConn = true
 		err = fasthttpUpgrader.Upgrade(responseWriter.Ctx, func(conn *websocket.Conn) {
 			upgraderFunc(conn)
 		})
+		if err == nil {
+			responseWriter.MarkHijacked()
+		}
 	}
 	statusCode := 200
 	if err != nil {
