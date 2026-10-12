@@ -33,7 +33,7 @@ CMD ["./{{.ModelName}}-1.0.0-SNAPSHOT"]
 const DockerCompose_Tel = `
 version: '3'
 services:
-  iot-link-bridge-server: # 服务名称 建议与容器名称一致
+  {{.ModelName}}: # 服务名称 建议与容器名称一致
     image: registry.cn-shanghai.aliyuncs.com/{{.ModelName}}:fat
     container_name: {{.ModelName}} # 容器名称
     environment:
