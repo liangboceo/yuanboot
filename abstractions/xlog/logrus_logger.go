@@ -49,7 +49,14 @@ func GetXLogger(class string) ILogger {
 		logPath := "/mnt/data/log/"
 		appName := fmt.Sprintf("app_%d", syscall.Getpid())
 		logLevel := "debug"
-		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName, LogType: "logrus"}
+		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 168, AppName: appName, LogType: "logrus"}
+	} else {
+		if option.LogMaxDiskUsage <= 0 {
+			option.LogMaxDiskUsage = 102400000
+		}
+		if option.LogMaxFileNum <= 0 {
+			option.LogMaxFileNum = 168
+		}
 	}
 	logger := GetClassLogger(class, option)
 	return logger
@@ -71,7 +78,7 @@ func GetXLoggerByLogLevel(class string, logLevel string) ILogger {
 	if err != nil {
 		logPath := "/mnt/data/log/"
 		appName := fmt.Sprintf("app_%d", syscall.Getpid())
-		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 50, AppName: appName}
+		option = &LogOptions{LogLevel: logLevel, LogPath: logPath, LogMaxDiskUsage: 102400000, LogMaxFileNum: 168, AppName: appName}
 	} else {
 		option.LogLevel = logLevel
 	}
